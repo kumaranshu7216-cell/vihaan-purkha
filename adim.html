@@ -9,14 +9,20 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background: #f0f2f5; 
             padding: 20px; 
+            margin: 0;
         }
         .admin-box { 
             background: white; 
-            max-width: 400px; 
-            margin: 0 auto; 
+            max-width: 420px; 
+            margin: 30px auto; 
             padding: 25px; 
             border-radius: 12px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            color: #d35400; 
+            text-align: center; 
+            margin-bottom: 20px; 
         }
         input, select, textarea { 
             width: 100%; 
@@ -25,11 +31,7 @@
             border: 1px solid #ccc; 
             border-radius: 8px; 
             box-sizing: border-box; 
-            font-size: 14px;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: #d35400;
-            outline: none;
+            font-size: 14px; 
         }
         button { 
             width: 100%; 
@@ -40,40 +42,42 @@
             border-radius: 8px; 
             cursor: pointer; 
             font-weight: bold; 
-            font-size: 16px;
-            transition: background 0.3s ease;
+            font-size: 16px; 
+            transition: background 0.3s;
         }
-        button:hover { 
-            background: #b84a00; 
+        button:hover {
+            background: #b04300;
+        }
+        #msg { 
+            color: #28a745; 
+            text-align: center; 
+            display: none; 
+            margin-top: 15px; 
+            font-weight: bold; 
         }
     </style>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="admin-box">
-        <h2 style="color: #d35400; text-align: center; margin-bottom: 20px;">नया ऐतिहासिक स्थल जोड़ें</h2>
-        
-        <!-- नया एडमिन ID फील्ड -->
-        <input type="text" id="adminId" placeholder="आपका एडमिन ID (जैसे: @spidey_ahamiyat)" required>
-        
-        <input type="text" id="placeId" placeholder="स्थान की ID (जैसे: lnmcbm_startup)" required>
-        <input type="text" id="placeName" placeholder="स्थान का नाम (जैसे: LNMCBM स्टार्टअप सेल)" required>
-        
+        <h2>नया स्थल जोड़ें (Cloud)</h2>
+        <input type="text" id="adminId" placeholder="एडमिन ID (जैसे: @spidey_ahamiyat)" required>
+        <input type="text" id="placeId" placeholder="स्थान ID (जैसे: garibnath_temple)" required>
+        <input type="text" id="placeName" placeholder="स्थान का नाम" required>
         <select id="placeCategory">
-            <option value="ऐतिहासिक स्थल">ऐतिहासिक स्थल</option>
             <option value="धार्मिक स्थल">धार्मिक स्थल</option>
+            <option value="ऐतिहासिक स्थल">ऐतिहासिक स्थल</option>
             <option value="लोकल इकॉनमी">लोकल इकॉनमी</option>
+            <option value="हैंडीक्राफ्ट">हैंडीक्राफ्ट</option>
         </select>
-
-        <textarea id="placeStory" rows="4" placeholder="AI गाइड के लिए कहानी लिखें..." required></textarea>
-        
-        <button onclick="saveData()">डेटा सेव करें</button>
-        
-        <p id="msg" style="color: #28a745; text-align: center; display: none; margin-top: 15px; font-weight: bold;">
-            ✅ डेटा सफलतापूर्वक जुड़ गया!
-        </p>
+        <textarea id="placeStory" rows="4" placeholder="स्थान की कहानी लिखें (AI गाइड यही बोलेगा)..." required></textarea>
+        <button onclick="saveData()">क्लाउड पर सुरक्षित करें</button>
+        <p id="msg">✅ डेटा सीधे क्लाउड पर सुरक्षित हो गया!</p>
     </div>
 
-    <!-- जावास्क्रिप्ट फाइल को लिंक करना -->
     <script src="admin.js"></script>
 </body>
 </html>

@@ -1,30 +1,47 @@
+// आपकी Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyA0bnCrIDTPracgy-qFvfXlXu7Im5RNGj0",
+    authDomain: "vihaan-purkha.firebaseapp.com",
+    projectId: "vihaan-purkha",
+    storageBucket: "vihaan-purkha.firebasestorage.app",
+    messagingSenderId: "1033538607939",
+    appId: "1:1033538607939:web:b341070cc12e6708716df6"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 const synth = window.speechSynthesis;
 const audioStatus = document.getElementById("audioStatus");
+let cloudData = {};
 
-function loadDynamicData() {
-    let savedData = JSON.parse(localStorage.getItem("vihaanData"));
-    if (!savedData || Object.keys(savedData).length === 0) {
-        savedData = {
-            "garibnath": { adminId: "विहान टीम", name: "बाबा गरीबनाथ मंदिर", category: "धार्मिक स्थल", story: "विहान पुरखा में आपका स्वागत है। बाबा गरीबनाथ मंदिर मुजफ्फरपुर का सबसे प्राचीन शिव मंदिर है।", xp: "50 XP बैज" },
-            "sutapatti": { adminId: "विहान टीम", name: "सुतापट्टी लहठी कला", category: "लोकल इकॉनमी", story: "सुतापट्टी की लहठी पूरे भारत में मशहूर है। यहाँ के स्थानीय कारीगर पीढ़ियों से लाह की खूबसूरत चूड़ियाँ बना रहे हैं।", xp: "100 XP बैज" }
-        };
-        localStorage.setItem("vihaanData", JSON.stringify(savedData));
-    }
-    return savedData;
+// Firestore से रियलटाइम डेटा सिंक
+function listenToCloudData() {
+    db.collection("places").onSnapshot((snapshot) => {
+        cloudData = {};
+        snapshot.forEach((doc) => {
+            cloudData[doc.id] = doc.data();
+        });
+        renderCards();
+    }, (error) => {
+        console.error("Firebase read error: ", error);
+    });
 }
 
 function renderCards(searchText = "", filterCategory = "सभी") {
-    const data = loadDynamicData();
     const cardList = document.getElementById("dynamicCardList");
     if (!cardList) return;
     cardList.innerHTML = ""; 
 
-    for (const key in data) {
-        const place = data[key];
+    let count = 0;
+
+    for (const key in cloudData) {
+        const place = cloudData[key];
         
         if (filterCategory !== "सभी" && place.category !== filterCategory) continue;
-        if (searchText && !place.name.includes(searchText)) continue;
+        if (searchText && !place.name.toLowerCase().includes(searchText.toLowerCase())) continue;
 
+        count++;
         const author = place.adminId ? place.adminId : "अज्ञात";
 
         const cardHTML = `
@@ -43,12 +60,11 @@ function renderCards(searchText = "", filterCategory = "सभी") {
         cardList.innerHTML += cardHTML;
     }
 
-    if(cardList.innerHTML === "") {
-        cardList.innerHTML = "<p style='text-align:center; color:red; margin-top:20px;'>डेटा नहीं मिला!</p>";
+    if (count === 0) {
+        cardList.innerHTML = "<p style='text-align:center; color:#777; margin-top:30px;'>कोई डेटा नहीं मिला या क्लाउड से लोड हो रहा है...</p>";
     }
 }
 
-// टैब बदलने का लॉजिक (होम, मैप, बैजेज)
 function showSection(sectionName) {
     const home = document.getElementById("homeSection");
     const map = document.getElementById("mapSection");
@@ -58,27 +74,21 @@ function showSection(sectionName) {
     map.style.display = "none";
     badges.style.display = "none";
 
-    if (sectionName === 'home') {
-        home.style.display = "block";
-    } else if (sectionName === 'map') {
-        map.style.display = "block";
-    } else if (sectionName === 'badges') {
-        badges.style.display = "block";
-    }
+    if (sectionName === 'home') home.style.display = "block";
+    else if (sectionName === 'map') map.style.display = "block";
+    else if (sectionName === 'badges') badges.style.display = "block";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    renderCards();
+    listenToCloudData();
 
-    // सर्च बार इवेंट
     const searchBar = document.querySelector(".search-bar");
-    if(searchBar) {
+    if (searchBar) {
         searchBar.addEventListener("input", (e) => {
             renderCards(e.target.value, document.querySelector(".cat-btn.active")?.innerText || "सभी");
         });
     }
 
-    // कैटेगरी बटन्स
     const catBtns = document.querySelectorAll(".cat-btn");
     catBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -89,13 +99,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // नीचे के बॉटम नेविगेशन बटन्स
     document.getElementById("navHome")?.addEventListener("click", () => showSection('home'));
     document.getElementById("navMap")?.addEventListener("click", () => showSection('map'));
     document.getElementById("navBadges")?.addEventListener("click", () => showSection('badges'));
 });
 
-// AI ऑडियो
+// AI आवाज़ (Hindi)
 let voices = [];
 function loadVoices() { voices = synth.getVoices(); }
 loadVoices();
@@ -103,8 +112,7 @@ if (speechSynthesis.onvoiceschanged !== undefined) { speechSynthesis.onvoicescha
 
 function startAIGuide(placeId) {
     if (synth.speaking) synth.cancel();
-    const data = loadDynamicData();
-    const textToSpeak = data[placeId]?.story;
+    const textToSpeak = cloudData[placeId]?.story;
     if (!textToSpeak) return;
 
     audioStatus.style.display = "block";
