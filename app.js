@@ -61,7 +61,7 @@ function renderCards(searchText = "", filterCategory = "सभी") {
     }
 
     if (count === 0) {
-        cardList.innerHTML = "<p style='text-align:center; color:#777; margin-top:30px;'>कोई डेटा नहीं मिला या क्लाउड से लोड हो रहा है...</p>";
+        cardList.innerHTML = "<p style='text-align:center; color:#777; margin-top:30px;'>डेटा लोड हो रहा है या कोई डेटा मौजूद नहीं है...</p>";
     }
 }
 
@@ -104,25 +104,52 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("navBadges")?.addEventListener("click", () => showSection('badges'));
 });
 
-// AI आवाज़ (Hindi)
-let voices = [];
-function loadVoices() { voices = synth.getVoices(); }
-loadVoices();
-if (speechSynthesis.onvoiceschanged !== undefined) { speechSynthesis.onvoiceschanged = loadVoices; }
-
+// AI आवाज़ (Edge और Chrome दोनों के लिए सपोर्ट)
 function startAIGuide(placeId) {
-    if (synth.speaking) synth.cancel();
+    if (!synth) {
+        alert("आपका ब्राउज़र वॉइस सपोर्ट नहीं करता।");
+        return;
+    }
+
+    // अगर पहले से कुछ बोल रहा हो या अटका हो तो रोकें
+    synth.cancel();
+
     const textToSpeak = cloudData[placeId]?.story;
     if (!textToSpeak) return;
 
-    audioStatus.style.display = "block";
+    if (audioStatus) audioStatus.style.display = "block";
+
     const utterThis = new SpeechSynthesisUtterance(textToSpeak);
-    const hindiVoice = voices.find(voice => voice.lang === 'hi-IN' || voice.lang === 'hi-in');
-    if (hindiVoice) utterThis.voice = hindiVoice;
-    else utterThis.lang = 'hi-IN';
-    
     utterThis.rate = 0.9;
-    utterThis.onend = () => { audioStatus.style.display = "none"; };
-    utterThis.onerror = () => { audioStatus.style.display = "none"; };
+    utterThis.pitch = 1.0;
+
+    // Edge और Chrome की सभी आवाज़ें फेच करना
+    const availableVoices = synth.getVoices();
+    
+    // हिंदी आवाज़ ढूंढने का सुरक्षित तरीका (Edge और Chrome दोनों के लिए)
+    const hindiVoice = availableVoices.find(voice => 
+        voice.lang.toLowerCase().includes('hi') || 
+        voice.name.toLowerCase().includes('hindi') || 
+        voice.name.toLowerCase().includes('swara') ||
+        voice.name.toLowerCase().includes('madhur')
+    );
+
+    if (hindiVoice) {
+        utterThis.voice = hindiVoice;
+    } else {
+        utterThis.lang = 'hi-IN';
+    }
+
+    utterThis.onend = () => { 
+        if (audioStatus) audioStatus.style.display = "none"; 
+    };
+
+    utterThis.onerror = (e) => { 
+        console.error("SpeechSynthesis Error:", e);
+        if (audioStatus) audioStatus.style.display = "none"; 
+    };
+
+    // Edge में speechSynthesis कई बार पॉज हो जाता है, resume() इसे चालू रखता है
+    synth.resume();
     synth.speak(utterThis);
 }
