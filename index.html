@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>विहान पुरखा - Vihaan Purkha</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- टॉप हेडर -->
+        <header class="header">
+            <h2>विहान पुरखा</h2>
+            <p style="font-size: 0.85em; margin-top: 5px; opacity: 0.9;">आपन इतिहास, नई आवाज़</p>
+            <input type="text" class="search-bar" placeholder="मुजफ्फरपुर में मंदिर या हैंडीक्राफ्ट खोजें...">
+        </header>
+
+        <!-- होम व्यू (कार्ड्स + कैटेगरीज) -->
+        <div id="homeSection">
+            <div class="categories">
+                <button class="cat-btn active">सभी</button>
+                <button class="cat-btn">धार्मिक स्थल</button>
+                <button class="cat-btn">हैंडीक्राफ्ट</button>
+                <button class="cat-btn">लोकल इकॉनमी</button>
+            </div>
+
+            <!-- हेरिटेज कार्ड्स लिस्ट -->
+            <div class="card-list" id="dynamicCardList"></div>
+        </div>
+
+        <!-- मैप सेक्शन (शुरुआत में छुपा हुआ) -->
+        <div id="mapSection" style="display: none; padding: 20px; text-align: center;">
+            <h3 style="color: #d35400; margin-bottom: 15px;">मुजफ्फरपुर हेरिटेज मैप</h3>
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d114674.19502931252!2d85.31609104868297!3d26.12871146864197!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39ed10e74b3e6a9f%3A0x6b306b328a6f44d8!2sMuzaffarpur%2C%20Bihar!5e0!3m2!1sen!2sin!4v1700000000000" 
+                width="100%" 
+                height="350" 
+                style="border:0; border-radius: 12px;" 
+                allowfullscreen="" 
+                loading="lazy">
+            </iframe>
+        </div>
+
+        <!-- बैजेज सेक्शन (शुरुआत में छुपा हुआ) -->
+        <div id="badgesSection" style="display: none; padding: 20px;">
+            <h3 style="color: #d35400; margin-bottom: 15px; text-align:center;">आपके डिजिटल बैजेज (XP)</h3>
+            <div style="background: #fff3e0; border-left: 5px solid #d35400; padding: 12px; margin-bottom: 10px; border-radius: 6px;">
+                <strong>🥇 मुजफ्फरपुर एक्सप्लोरर</strong>
+                <p style="font-size: 0.85em; color: #555;">50 XP प्राप्त किया (बाबा गरीबनाथ दर्शन)</p>
+            </div>
+            <div style="background: #e8f5e9; border-left: 5px solid #2e7d32; padding: 12px; margin-bottom: 10px; border-radius: 6px;">
+                <strong>🎨 लोकल क्राफ्ट सपोर्टर</strong>
+                <p style="font-size: 0.85em; color: #555;">100 XP प्राप्त किया (सुतापट्टी लहठी कला)</p>
+            </div>
+        </div>
+
+        <!-- AI ऑडियो स्टेटस -->
+        <div id="audioStatus" style="display:none; text-align:center; padding: 10px; color: #1a73e8; font-weight: bold; font-size: 0.9em;">
+            🔊 विहान पुरखा AI बोल रहा है...
+        </div>
+
+        <!-- बॉटम नेविगेशन बार -->
+        <nav class="bottom-nav">
+            <button class="nav-item" id="navHome">🏠 होम</button>
+            <button class="nav-item" id="navMap">🗺️ मैप</button>
+            <button class="nav-item" id="navBadges">🏆 बैजेज</button>
+            <button class="nav-item" style="font-size: 0.7em;">@spidey_ahamiyat</button>
+        </nav>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
