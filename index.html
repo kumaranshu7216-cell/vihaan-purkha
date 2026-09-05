@@ -15,6 +15,18 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+    <!-- स्प्लैश स्क्रीन (टाइपराइटर वेलकम एनिमेशन) -->
+    <div id="splashScreen" class="splash-overlay">
+        <div class="splash-content">
+            <div class="splash-logo">वि</div>
+            <h1 class="typewriter-text" id="typewriter"></h1>
+            <p class="splash-sub">आपन इतिहास, नई आवाज़</p>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
+
+    <!-- मुख्य ऐप कंटेनर -->
     <div class="app-container">
         <!-- टॉप हेडर व लोगो -->
         <header class="header">
@@ -28,7 +40,7 @@
 
             <!-- खोज और भाषा चयन -->
             <div class="header-controls">
-                <input type="text" class="search-bar" placeholder="स्थल खोजें...">
+                <input type="text" class="search-bar" placeholder="मुजफ्फरपुर में स्थल खोजें...">
                 <select id="guideLanguage" class="lang-select">
                     <option value="hi-IN">🇮🇳 हिंदी</option>
                     <option value="bho-IN">🌾 भोजपुरी/मैथिली</option>
@@ -65,7 +77,7 @@
 
         <!-- बैजेज सेक्शन -->
         <div id="badgesSection" style="display: none; padding: 20px;">
-            <h3 style="color: #d35400; margin-bottom: 15px; text-align:center;">आपके डिजिटल बैजेज</h3>
+            <h3 style="color: #d35400; margin-bottom: 15px; text-align:center;">आपके डिजिटल बैजेज (XP)</h3>
             <div style="background: #fff3e0; border-left: 5px solid #d35400; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
                 <strong>🥇 मुजफ्फरपुर एक्सप्लोरर</strong>
                 <p style="font-size: 0.85em; color: #555; margin-top: 3px;">50 XP प्राप्त किया (बाबा गरीबनाथ दर्शन)</p>
@@ -95,11 +107,39 @@
 
         <!-- बॉटम नेविगेशन बार -->
         <nav class="bottom-nav">
-            <button class="nav-item" id="navHome">🏠 <span>होम</span></button>
+            <button class="nav-item active-nav" id="navHome">🏠 <span>होम</span></button>
             <button class="nav-item" id="navMap">🗺️ <span>मैप</span></button>
             <button class="nav-item" id="navBadges">🏆 <span>बैजेज</span></button>
         </nav>
     </div>
+
+    <!-- टाइपराइटर व स्प्लैश स्क्रीन ट्रिगर स्क्रिप्ट -->
+    <script>
+        const welcomeText = "विहान पुरखा";
+        let charIndex = 0;
+        const typewriterEl = document.getElementById("typewriter");
+
+        function playTypewriter() {
+            if (charIndex < welcomeText.length) {
+                typewriterEl.textContent += welcomeText.charAt(charIndex);
+                charIndex++;
+                setTimeout(playTypewriter, 120);
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            playTypewriter();
+            setTimeout(() => {
+                const splash = document.getElementById("splashScreen");
+                if (splash) {
+                    splash.classList.add("splash-fade-out");
+                    setTimeout(() => {
+                        splash.style.display = "none";
+                    }, 600);
+                }
+            }, 2200);
+        });
+    </script>
 
     <script src="app.js"></script>
 </body>

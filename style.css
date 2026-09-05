@@ -24,6 +24,113 @@ body {
     padding-bottom: 75px;
 }
 
+/* ================= स्प्लैश स्क्रीन स्टाइल ================= */
+.splash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #2c1a0e 0%, #0d0f12 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.splash-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.splash-logo {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #d35400, #f39c12);
+    color: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 900;
+    box-shadow: 0 0 25px rgba(211, 84, 0, 0.6);
+    margin-bottom: 20px;
+    animation: pulseLogo 1.8s infinite ease-in-out;
+}
+
+.typewriter-text {
+    color: #ffffff;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    min-height: 42px;
+    margin: 0;
+    border-right: 3px solid #f39c12;
+    white-space: nowrap;
+    animation: blinkCursor 0.7s infinite;
+}
+
+.splash-sub {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    margin-top: 10px;
+    opacity: 0;
+    animation: fadeInSub 1s ease forwards 1.2s;
+    letter-spacing: 0.5px;
+}
+
+.splash-loader {
+    width: 45px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    margin-top: 25px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.splash-loader::after {
+    content: '';
+    position: absolute;
+    left: -50%;
+    height: 100%;
+    width: 50%;
+    background: #d35400;
+    border-radius: 4px;
+    animation: loaderMove 1.5s infinite linear;
+}
+
+@keyframes pulseLogo {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(211, 84, 0, 0.5); }
+    50% { transform: scale(1.08); box-shadow: 0 0 35px rgba(243, 156, 18, 0.8); }
+}
+
+@keyframes blinkCursor {
+    0%, 100% { border-color: #f39c12; }
+    50% { border-color: transparent; }
+}
+
+@keyframes fadeInSub {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 0.9; transform: translateY(0); }
+}
+
+@keyframes loaderMove {
+    0% { left: -50%; }
+    100% { left: 100%; }
+}
+
+.splash-fade-out {
+    opacity: 0;
+    transform: scale(1.05);
+    pointer-events: none;
+}
+
+/* ================= हेडर व लोगो ================= */
 .header {
     background: linear-gradient(135deg, #d35400, #f39c12);
     color: white;
@@ -79,6 +186,7 @@ body {
     font-size: 13px;
     background: #ffffff;
     color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .lang-select {
@@ -91,8 +199,10 @@ body {
     color: #d35400;
     font-weight: 700;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+/* ================= श्रेणियां (टैब्स) ================= */
 .categories {
     display: flex;
     gap: 8px;
@@ -114,14 +224,17 @@ body {
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .cat-btn.active {
     background: #d35400;
     color: #ffffff;
     border-color: #d35400;
+    box-shadow: 0 3px 8px rgba(211, 84, 0, 0.3);
 }
 
+/* ================= कार्ड व कार्ड सूची ================= */
 .card-list {
     padding: 12px 16px;
     display: flex;
@@ -135,6 +248,11 @@ body {
     overflow: hidden;
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
 }
 
 .card-img-wrapper {
@@ -157,6 +275,7 @@ body {
     top: 10px;
     right: 10px;
     background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
     color: #fff;
     font-size: 11px;
     font-weight: 700;
@@ -182,7 +301,8 @@ body {
     position: absolute;
     bottom: 10px;
     left: 10px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(4px);
     color: #d35400;
     font-size: 11px;
     font-weight: 700;
@@ -205,6 +325,7 @@ body {
     font-size: 12px;
     color: #64748b;
     margin-bottom: 12px;
+    line-height: 1.4;
 }
 
 .card-actions {
@@ -225,6 +346,7 @@ body {
 .ai-btn {
     background: linear-gradient(135deg, #d35400, #e67e22);
     color: #ffffff;
+    box-shadow: 0 3px 8px rgba(211, 84, 0, 0.25);
 }
 
 .nav-btn {
@@ -232,7 +354,7 @@ body {
     color: #334155;
 }
 
-/* 360° मोडल/पॉपअप बॉक्स */
+/* ================= 360° मोडल पॉपअप ================= */
 .pano-modal {
     display: none;
     position: fixed;
@@ -286,6 +408,7 @@ body {
     margin-top: 8px;
 }
 
+/* ================= ऑडियो स्टेटस व बॉटम नेविगेशन ================= */
 #audioStatus {
     position: fixed;
     bottom: 78px;
@@ -297,6 +420,7 @@ body {
     border-radius: 20px;
     font-size: 12px;
     z-index: 100;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
     display: none;
 }
 
@@ -325,4 +449,8 @@ body {
     align-items: center;
     gap: 2px;
     cursor: pointer;
+}
+
+.nav-item.active-nav {
+    color: #d35400;
 }
