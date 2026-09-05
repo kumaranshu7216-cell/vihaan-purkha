@@ -1,4 +1,3 @@
-// आपकी Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyA0bnCrIDTPracgy-qFvfXlXu7Im5RNGj0",
     authDomain: "vihaan-purkha.firebaseapp.com",
@@ -15,7 +14,9 @@ const synth = window.speechSynthesis;
 const audioStatus = document.getElementById("audioStatus");
 let cloudData = {};
 
-// Firestore से रियलटाइम डेटा सिंक
+const defaultImage = "https://images.unsplash.com/photo-1548013146-72479768bada?w=800&auto=format&fit=crop&q=60";
+
+// Firestore से रियलटाइम डेटा लोड करना
 function listenToCloudData() {
     db.collection("places").onSnapshot((snapshot) => {
         cloudData = {};
@@ -24,7 +25,7 @@ function listenToCloudData() {
         });
         renderCards();
     }, (error) => {
-        console.error("Firebase read error: ", error);
+        console.error("Firebase read error:", error);
     });
 }
 
@@ -42,18 +43,23 @@ function renderCards(searchText = "", filterCategory = "सभी") {
         if (searchText && !place.name.toLowerCase().includes(searchText.toLowerCase())) continue;
 
         count++;
-        const author = place.adminId ? place.adminId : "अज्ञात";
+        const displayImage = place.imageUrl ? place.imageUrl : defaultImage;
+        const locationText = place.village ? `${place.village}, ${place.district || 'बिहार'}` : (place.district || "बिहार");
 
         const cardHTML = `
             <div class="card">
-                <div class="card-img" style="background-color: #ffcc80;">
-                    (${place.name} 360° व्यू)
+                <div class="card-img-wrapper">
+                    <img src="${displayImage}" alt="${place.name}" loading="lazy">
+                    <div class="badge-overlay">🏆 ${place.xp || "50 XP"}</div>
+                    <div class="location-chip">📍 ${locationText}</div>
                 </div>
                 <div class="card-content">
                     <h3>${place.name}</h3>
-                    <p class="tag">${place.category} • ${place.xp || "50 XP बैज"} <br><span style="color:#1a73e8; font-size: 0.85em;">✍️ Contributor: ${author}</span></p>
-                    <button class="ai-btn" onclick="startAIGuide('${key}')">🎧 AI गाइड सुनें</button>
-                    <button class="nav-btn" onclick="showSection('map')">📍 नेविगेट</button>
+                    <p class="tag">${place.category} • <span style="color:#d35400; font-weight:600;">✍️ ${place.adminId || '@spidey_ahamiyat'}</span></p>
+                    <div class="card-actions">
+                        <button class="ai-btn" onclick="startAIGuide('${key}')">🎧 AI गाइड सुनें</button>
+                        <button class="nav-btn" onclick="showSection('map')">📍 नेविगेट</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -61,7 +67,7 @@ function renderCards(searchText = "", filterCategory = "सभी") {
     }
 
     if (count === 0) {
-        cardList.innerHTML = "<p style='text-align:center; color:#777; margin-top:30px;'>डेटा लोड हो रहा है या कोई डेटा मौजूद नहीं है...</p>";
+        cardList.innerHTML = "<p style='text-align:center; color:#94a3b8; margin: 40px 0;'>कोई स्थल नहीं मिला...</p>";
     }
 }
 
@@ -104,52 +110,47 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("navBadges")?.addEventListener("click", () => showSection('badges'));
 });
 
-// AI आवाज़ (Edge और Chrome दोनों के लिए सपोर्ट)
+// बहुभाषी AI आवाज़
 function startAIGuide(placeId) {
-    if (!synth) {
-        alert("आपका ब्राउज़र वॉइस सपोर्ट नहीं करता।");
-        return;
-    }
-
-    // अगर पहले से कुछ बोल रहा हो या अटका हो तो रोकें
+    if (!synth) return;
     synth.cancel();
 
-    const textToSpeak = cloudData[placeId]?.story;
-    if (!textToSpeak) return;
+    const place = cloudData[placeId];
+    if (!place || !place.story) return;
+
+    const selectedLang = document.getElementById("guideLanguage")?.value || "hi-IN";
+    let textToSpeak = place.story;
+
+    // अगर भोजपुरी/मैथिली टोन चुना हो, तो स्थानीय अभिवादन जोड़ें
+    if (selectedLang === "bho-IN") {
+        textToSpeak = "प्रणाम! ई बा " + place.name + " के कहानी। " + place.story;
+    }
 
     if (audioStatus) audioStatus.style.display = "block";
 
     const utterThis = new SpeechSynthesisUtterance(textToSpeak);
-    utterThis.rate = 0.9;
-    utterThis.pitch = 1.0;
+    utterThis.rate = 0.88;
 
-    // Edge और Chrome की सभी आवाज़ें फेच करना
-    const availableVoices = synth.getVoices();
-    
-    // हिंदी आवाज़ ढूंढने का सुरक्षित तरीका (Edge और Chrome दोनों के लिए)
-    const hindiVoice = availableVoices.find(voice => 
-        voice.lang.toLowerCase().includes('hi') || 
-        voice.name.toLowerCase().includes('hindi') || 
-        voice.name.toLowerCase().includes('swara') ||
-        voice.name.toLowerCase().includes('madhur')
-    );
+    const voices = synth.getVoices();
 
-    if (hindiVoice) {
-        utterThis.voice = hindiVoice;
+    if (selectedLang === "en-IN") {
+        const enVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("en-GB") || v.lang.includes("en-US"));
+        if (enVoice) utterThis.voice = enVoice;
+        utterThis.lang = "en-IN";
     } else {
-        utterThis.lang = 'hi-IN';
+        const hindiVoice = voices.find(v => 
+            v.lang.toLowerCase().includes("hi") || 
+            v.name.toLowerCase().includes("hindi") || 
+            v.name.toLowerCase().includes("swara") || 
+            v.name.toLowerCase().includes("madhur")
+        );
+        if (hindiVoice) utterThis.voice = hindiVoice;
+        utterThis.lang = "hi-IN";
     }
 
-    utterThis.onend = () => { 
-        if (audioStatus) audioStatus.style.display = "none"; 
-    };
+    utterThis.onend = () => { if (audioStatus) audioStatus.style.display = "none"; };
+    utterThis.onerror = () => { if (audioStatus) audioStatus.style.display = "none"; };
 
-    utterThis.onerror = (e) => { 
-        console.error("SpeechSynthesis Error:", e);
-        if (audioStatus) audioStatus.style.display = "none"; 
-    };
-
-    // Edge में speechSynthesis कई बार पॉज हो जाता है, resume() इसे चालू रखता है
     synth.resume();
     synth.speak(utterThis);
 }

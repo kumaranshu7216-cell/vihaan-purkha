@@ -3,58 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>एडमिन पैनल - विहान पुरखा</title>
+    <title>विहान पुरखा - एडमिन कंसोल</title>
     <style>
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #f0f2f5; 
-            padding: 20px; 
-            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #f8fafc; 
+            padding: 16px; 
+            margin: 0; 
         }
-        .admin-box { 
+        .admin-card { 
             background: white; 
-            max-width: 420px; 
-            margin: 30px auto; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            max-width: 460px; 
+            margin: 15px auto; 
+            padding: 24px; 
+            border-radius: 18px; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06); 
+            border: 1px solid #e2e8f0;
         }
-        h2 { 
-            color: #d35400; 
-            text-align: center; 
-            margin-bottom: 20px; 
+        .logo-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
         }
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #d35400, #f39c12);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(211, 84, 0, 0.3);
+        }
+        h2 { color: #0f172a; margin: 0; font-size: 1.4rem; font-weight: 800; }
+        .sub { font-size: 0.8rem; color: #64748b; margin: 0; }
+        
+        label { font-size: 12px; font-weight: 700; color: #334155; display: block; margin-top: 10px; margin-bottom: 4px; }
         input, select, textarea { 
             width: 100%; 
-            padding: 12px; 
-            margin-bottom: 15px; 
-            border: 1px solid #ccc; 
+            padding: 10px 12px; 
+            border: 1px solid #cbd5e1; 
             border-radius: 8px; 
             box-sizing: border-box; 
-            font-size: 14px; 
+            font-size: 13px; 
+            outline: none; 
         }
+        input:focus, textarea:focus, select:focus { border-color: #d35400; }
+        .row-grid { display: flex; gap: 8px; }
+        .row-grid div { flex: 1; }
+        
+        .upload-preview {
+            width: 100%;
+            height: 140px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 6px;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+        .upload-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        
         button { 
             width: 100%; 
-            padding: 14px; 
-            background: #d35400; 
+            padding: 13px; 
+            margin-top: 18px; 
+            background: linear-gradient(135deg, #d35400, #e67e22); 
             color: white; 
             border: none; 
-            border-radius: 8px; 
+            border-radius: 10px; 
             cursor: pointer; 
-            font-weight: bold; 
-            font-size: 16px; 
-            transition: background 0.3s;
+            font-weight: 700; 
+            font-size: 15px; 
+            box-shadow: 0 4px 12px rgba(211, 84, 0, 0.25); 
         }
-        button:hover {
-            background: #b04300;
-        }
-        #msg { 
-            color: #28a745; 
-            text-align: center; 
-            display: none; 
-            margin-top: 15px; 
-            font-weight: bold; 
-        }
+        #msg { color: #16a34a; text-align: center; display: none; margin-top: 12px; font-weight: 700; font-size: 13px; }
     </style>
 
     <!-- Firebase SDKs -->
@@ -62,20 +92,59 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class="admin-box">
-        <h2>नया स्थल जोड़ें (Cloud)</h2>
-        <input type="text" id="adminId" placeholder="एडमिन ID (जैसे: @spidey_ahamiyat)" required>
-        <input type="text" id="placeId" placeholder="स्थान ID (जैसे: garibnath_temple)" required>
-        <input type="text" id="placeName" placeholder="स्थान का नाम" required>
+    <div class="admin-card">
+        <div class="logo-box">
+            <div class="logo-icon">वि</div>
+            <div>
+                <h2>विहान पुरखा</h2>
+                <p class="sub">एडमिन मैनेजमेंट कंसोल</p>
+            </div>
+        </div>
+
+        <label>एडमिन हैंडल</label>
+        <input type="text" id="adminId" value="@spidey_ahamiyat" required>
+
+        <label>स्थान ID (Unique ID बिना स्पेस के)</label>
+        <input type="text" id="placeId" placeholder="garibnath_mandir" required>
+
+        <label>स्थान का नाम</label>
+        <input type="text" id="placeName" placeholder="बाबा गरीबनाथ मंदिर" required>
+
+        <div class="row-grid">
+            <div>
+                <label>राज्य (State)</label>
+                <input type="text" id="placeState" value="Bihar" required>
+            </div>
+            <div>
+                <label>ज़िला (District)</label>
+                <input type="text" id="placeDistrict" value="Muzaffarpur" required>
+            </div>
+            <div>
+                <label>गाँव / कस्बा (Locality)</label>
+                <input type="text" id="placeVillage" placeholder="पुरानी बाज़ार" required>
+            </div>
+        </div>
+
+        <label>स्थान की फ़ोटो अपलोड करें</label>
+        <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
+        <div class="upload-preview" id="previewContainer">
+            <span id="previewPlaceholder" style="color: #94a3b8; font-size: 12px;">फ़ोटो चुनें</span>
+            <img id="imgPreview" alt="Preview">
+        </div>
+
+        <label>श्रेणी (Category)</label>
         <select id="placeCategory">
             <option value="धार्मिक स्थल">धार्मिक स्थल</option>
             <option value="ऐतिहासिक स्थल">ऐतिहासिक स्थल</option>
             <option value="लोकल इकॉनमी">लोकल इकॉनमी</option>
             <option value="हैंडीक्राफ्ट">हैंडीक्राफ्ट</option>
         </select>
-        <textarea id="placeStory" rows="4" placeholder="स्थान की कहानी लिखें (AI गाइड यही बोलेगा)..." required></textarea>
-        <button onclick="saveData()">क्लाउड पर सुरक्षित करें</button>
-        <p id="msg">✅ डेटा सीधे क्लाउड पर सुरक्षित हो गया!</p>
+
+        <label>स्थान की कहानी (AI गाइड यही बोलेगा)</label>
+        <textarea id="placeStory" rows="4" placeholder="विस्तृत इतिहास और विशेषता लिखें..." required></textarea>
+
+        <button onclick="saveData()">क्लाउड पर सेव करें</button>
+        <p id="msg">✅ स्थल सीधे क्लाउड डेटाबेस में सुरक्षित हो गया!</p>
     </div>
 
     <script src="admin.js"></script>
