@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>विहान पुरखा - Vihaan Purkha</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Pannellum 360° Panorama Viewer CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -21,7 +26,7 @@
                 </div>
             </div>
 
-            <!-- सर्च व भाषा चयन -->
+            <!-- खोज और भाषा चयन -->
             <div class="header-controls">
                 <input type="text" class="search-bar" placeholder="स्थल खोजें...">
                 <select id="guideLanguage" class="lang-select">
@@ -68,6 +73,18 @@
             <div style="background: #e8f5e9; border-left: 5px solid #2e7d32; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
                 <strong>🎨 लोकल क्राफ्ट सपोर्टर</strong>
                 <p style="font-size: 0.85em; color: #555; margin-top: 3px;">100 XP प्राप्त किया (सुतापट्टी लहठी कला)</p>
+            </div>
+        </div>
+
+        <!-- 360° पैनोरमा मॉडल (फुलस्क्रीन पॉपअप) -->
+        <div id="panoModal" class="pano-modal">
+            <div class="pano-modal-content">
+                <div class="pano-header">
+                    <span id="panoTitle">360° व्यू</span>
+                    <button class="close-pano" onclick="close360View()">✕</button>
+                </div>
+                <div id="panorama-container"></div>
+                <p class="pano-hint">👆 स्क्रीन को उंगली या माउस से चारों तरफ घुमाकर 360° में देखें</p>
             </div>
         </div>
 

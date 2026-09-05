@@ -13,10 +13,11 @@ const db = firebase.firestore();
 const synth = window.speechSynthesis;
 const audioStatus = document.getElementById("audioStatus");
 let cloudData = {};
+let pannellumViewer = null;
 
-const defaultImage = "https://images.unsplash.com/photo-1548013146-72479768bada?w=800&auto=format&fit=crop&q=60";
+// बाबा गरीबनाथ जी का डिफ़ॉल्ट हेरिटेज फोटो (ताजमहल हटा दिया गया है)
+const templeFallback = "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=1000&auto=format&fit=crop&q=80";
 
-// Firestore से रियलटाइम डेटा लोड करना
 function listenToCloudData() {
     db.collection("places").onSnapshot((snapshot) => {
         cloudData = {};
@@ -43,13 +44,14 @@ function renderCards(searchText = "", filterCategory = "सभी") {
         if (searchText && !place.name.toLowerCase().includes(searchText.toLowerCase())) continue;
 
         count++;
-        const displayImage = place.imageUrl ? place.imageUrl : defaultImage;
-        const locationText = place.village ? `${place.village}, ${place.district || 'बिहार'}` : (place.district || "बिहार");
+        const displayImage = place.imageUrl ? place.imageUrl : templeFallback;
+        const locationText = place.village ? `${place.village}, ${place.district || 'मुजफ्फरपुर'}` : (place.district || "मुजफ्फरपुर, बिहार");
 
         const cardHTML = `
             <div class="card">
-                <div class="card-img-wrapper">
+                <div class="card-img-wrapper" onclick="open360View('${key}')">
                     <img src="${displayImage}" alt="${place.name}" loading="lazy">
+                    <div class="view-360-btn">🔄 360° दर्शन</div>
                     <div class="badge-overlay">🏆 ${place.xp || "50 XP"}</div>
                     <div class="location-chip">📍 ${locationText}</div>
                 </div>
@@ -58,7 +60,7 @@ function renderCards(searchText = "", filterCategory = "सभी") {
                     <p class="tag">${place.category} • <span style="color:#d35400; font-weight:600;">✍️ ${place.adminId || '@spidey_ahamiyat'}</span></p>
                     <div class="card-actions">
                         <button class="ai-btn" onclick="startAIGuide('${key}')">🎧 AI गाइड सुनें</button>
-                        <button class="nav-btn" onclick="showSection('map')">📍 नेविगेट</button>
+                        <button class="nav-btn" onclick="open360View('${key}')">🔄 360° व्यू</button>
                     </div>
                 </div>
             </div>
@@ -68,6 +70,38 @@ function renderCards(searchText = "", filterCategory = "सभी") {
 
     if (count === 0) {
         cardList.innerHTML = "<p style='text-align:center; color:#94a3b8; margin: 40px 0;'>कोई स्थल नहीं मिला...</p>";
+    }
+}
+
+// 360° पैनोरमा व्यू ओपन करने का फंक्शन
+function open360View(placeId) {
+    const place = cloudData[placeId];
+    if (!place) return;
+
+    const imgUrl = place.imageUrl ? place.imageUrl : templeFallback;
+    document.getElementById("panoTitle").innerText = `${place.name} (360° व्यू)`;
+    document.getElementById("panoModal").style.display = "flex";
+
+    // पुराना व्यूअर साफ़ करके नया 360 व्यू लोड करना
+    document.getElementById("panorama-container").innerHTML = "";
+
+    try {
+        pannellumViewer = pannellum.viewer('panorama-container', {
+            "type": "equirectangular",
+            "panorama": imgUrl,
+            "autoLoad": true,
+            "autoRotate": -2,
+            "compass": true
+        });
+    } catch (err) {
+        console.log("360 Load Note: ", err);
+    }
+}
+
+function close360View() {
+    document.getElementById("panoModal").style.display = "none";
+    if (pannellumViewer) {
+        try { pannellumViewer.destroy(); } catch(e){}
     }
 }
 
@@ -110,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("navBadges")?.addEventListener("click", () => showSection('badges'));
 });
 
-// बहुभाषी AI आवाज़
+// AI आवाज़
 function startAIGuide(placeId) {
     if (!synth) return;
     synth.cancel();
@@ -121,9 +155,8 @@ function startAIGuide(placeId) {
     const selectedLang = document.getElementById("guideLanguage")?.value || "hi-IN";
     let textToSpeak = place.story;
 
-    // अगर भोजपुरी/मैथिली टोन चुना हो, तो स्थानीय अभिवादन जोड़ें
     if (selectedLang === "bho-IN") {
-        textToSpeak = "प्रणाम! ई बा " + place.name + " के कहानी। " + place.story;
+        textToSpeak = "प्रणाम! ई बा " + place.name + " के इतिहास। " + place.story;
     }
 
     if (audioStatus) audioStatus.style.display = "block";
@@ -134,7 +167,7 @@ function startAIGuide(placeId) {
     const voices = synth.getVoices();
 
     if (selectedLang === "en-IN") {
-        const enVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("en-GB") || v.lang.includes("en-US"));
+        const enVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("en-GB"));
         if (enVoice) utterThis.voice = enVoice;
         utterThis.lang = "en-IN";
     } else {
