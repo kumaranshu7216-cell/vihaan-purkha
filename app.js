@@ -15,11 +15,10 @@ const synth = window.speechSynthesis;
 const audioStatus = document.getElementById("audioStatus");
 let pannellumViewer = null;
 
-// Leaflet Map ग्लोबल वेरिएबल
 let leafletMap = null;
 let currentMarker = null;
 
-// ज़िलों के अक्षांश-देशांतर (Latitude & Longitude)
+// ज़िलों के सटीक अक्षांश-देशांतर (Latitude & Longitude)
 const districtCoords = {
     "Muzaffarpur": [26.1209, 85.3647],
     "Patna": [25.5941, 85.1376],
@@ -31,8 +30,8 @@ const districtCoords = {
     "Ludhiana": [30.9010, 75.8573],
     "Jalandhar": [31.3260, 75.5762],
     "Patiala": [30.3398, 76.3869],
-    "Varanasi": [25.3176, 82.9739],
     "Ayodhya": [26.7922, 82.1998],
+    "Varanasi": [25.3176, 82.9739],
     "Lucknow": [26.8467, 80.9462],
     "Agra": [27.1767, 78.0081],
     "Mathura": [27.4924, 77.6737]
@@ -41,14 +40,43 @@ const districtCoords = {
 const stateDistricts = {
     "Bihar": ["Muzaffarpur", "Patna", "Gaya", "Darbhanga", "Bhagalpur", "Vaishali"],
     "Punjab": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala"],
-    "Uttar Pradesh": ["Varanasi", "Ayodhya", "Lucknow", "Agra", "Mathura"]
+    "Uttar Pradesh": ["Ayodhya", "Varanasi", "Lucknow", "Agra", "Mathura"]
 };
 
 let selectedState = localStorage.getItem("vp_state") || "Bihar";
 let selectedDistrict = localStorage.getItem("vp_district") || "Muzaffarpur";
 
-// समृद्ध डिफ़ॉल्ट डेटा
+// ================= समृद्ध डिफ़ॉल्ट डेटा (अयोध्या श्री राम मंदिर सहित) =================
 const defaultPlaces = {
+    // उत्तर प्रदेश - अयोध्या
+    "ram_mandir_ayodhya": {
+        name: "श्री राम जन्मभूमि मंदिर",
+        state: "Uttar Pradesh",
+        district: "Ayodhya",
+        village: "रामकोट, अयोध्या धाम",
+        lat: 26.7956,
+        lng: 82.1943,
+        category: "धार्मिक स्थल",
+        imageUrl: "https://images.unsplash.com/photo-1706185890886-07a82c448bb0?w=1000&auto=format&fit=crop&q=80",
+        story: "मर्यादा पुरुषोत्तम भगवान श्री राम का यह भव्य जन्मभूमि मंदिर भारतीय आस्था, संस्कृति और स्थापत्य कला का अनुपम संगम है। नागर शैली में निर्मित यह पावन धाम पूरे विश्व के करोड़ों श्रद्धालुओं की आस्था का सर्वोच्च केंद्र है।",
+        adminId: "@spidey_ahamiyat",
+        xp: "100 XP"
+    },
+    // उत्तर प्रदेश - वाराणसी
+    "kashi_vishwanath": {
+        name: "श्री काशी विश्वनाथ ज्योतिर्लिंग",
+        state: "Uttar Pradesh",
+        district: "Varanasi",
+        village: "विश्वनाथ गली",
+        lat: 25.3109,
+        lng: 83.0107,
+        category: "धार्मिक स्थल",
+        imageUrl: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=1000&auto=format&fit=crop&q=80",
+        story: "द्वादश ज्योतिर्लिंगों में प्रमुख भगवान शिव की अविनाशी नगरी काशी का यह मंदिर मोक्ष दायिनी शक्ति और सनातन चेतना का पावन केंद्र है।",
+        adminId: "@spidey_ahamiyat",
+        xp: "100 XP"
+    },
+    // बिहार - मुजफ्फरपुर
     "garibnath_mandir": {
         name: "बाबा गरीबनाथ मंदिर",
         state: "Bihar",
@@ -71,23 +99,11 @@ const defaultPlaces = {
         lng: 85.3810,
         category: "ऐतिहासिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=1000&auto=format&fit=crop&q=80",
-        story: "यह स्थल भारत के सबसे युवा क्रांतिकारी अमर शहीद खुदीराम बोस की शहादत का साक्षी है। मात्र 18 वर्ष की आयु में उन्हें मुजफ्फरपुर जेल में फांसी दी गई थी।",
+        story: "यह स्थल अमर बलिदानी शहीद खुदीराम बोस की शहादत का साक्षी है, जिन्हें मात्र 18 वर्ष की आयु में मुजफ्फरपुर में फांसी दी गई थी।",
         adminId: "@spidey_ahamiyat",
         xp: "60 XP"
     },
-    "ls_college": {
-        name: "लंगट सिंह कॉलेज (LS College)",
-        state: "Bihar",
-        district: "Muzaffarpur",
-        village: "कलमबाग रोड",
-        lat: 26.1310,
-        lng: 85.3615,
-        category: "ऐतिहासिक स्थल",
-        imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1000&auto=format&fit=crop&q=80",
-        story: "1899 में स्थापित लंगट सिंह कॉलेज उत्तर बिहार का प्रमुख ऐतिहासिक शैक्षणिक संस्थान है, जहाँ राष्ट्रपिता महात्मा गांधी स्वयं ठहरे थे।",
-        adminId: "@spidey_ahamiyat",
-        xp: "40 XP"
-    },
+    // पंजाब - अमृतसर
     "golden_temple": {
         name: "स्वर्ण मंदिर (Golden Temple)",
         state: "Punjab",
@@ -97,20 +113,7 @@ const defaultPlaces = {
         lng: 74.8765,
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1588096344356-9a4d95267b2d?w=1000&auto=format&fit=crop&q=80",
-        story: "श्री हरिमंदिर साहिब सिख धर्म का सर्वोच्च आध्यात्मिक केंद्र है, जो शांति, समानता और अखंड लंगर का प्रतीक है।",
-        adminId: "@spidey_ahamiyat",
-        xp: "100 XP"
-    },
-    "kashi_vishwanath": {
-        name: "श्री काशी विश्वनाथ ज्योतिर्लिंग",
-        state: "Uttar Pradesh",
-        district: "Varanasi",
-        village: "विश्वनाथ गली",
-        lat: 25.3109,
-        lng: 83.0107,
-        category: "धार्मिक स्थल",
-        imageUrl: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=1000&auto=format&fit=crop&q=80",
-        story: "द्वादश ज्योतिर्लिंगों में प्रमुख भगवान शिव की अविनाशी नगरी काशी का यह मंदिर मोक्ष दायिनी आध्यात्मिक ऊर्जा का केंद्र है।",
+        story: "श्री हरिमंदिर साहिब सिख धर्म का सर्वोच्च आध्यात्मिक केंद्र है, जो पवित्र अमृत सरोवर, स्वर्ण आभा और अखंड लंगर सेवा का प्रतीक है।",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     }
@@ -207,7 +210,7 @@ function listenToCloudData() {
     });
 }
 
-// ================= कार्ड रेंडरिंग और स्मार्ट सर्च =================
+// ================= कार्ड रेंडरिंग और स्मार्ट फ़िल्टर =================
 function renderCards() {
     const cardList = document.getElementById("dynamicCardList");
     if (!cardList) return;
@@ -226,21 +229,27 @@ function renderCards() {
         if (!place || !place.name) continue;
 
         const pName = (place.name || "").toLowerCase();
-        const pState = (place.state || "Bihar").toLowerCase();
-        const pDistrict = (place.district || "Muzaffarpur").toLowerCase();
+        const pState = (place.state || "").toLowerCase();
+        const pDistrict = (place.district || "").toLowerCase();
         const pVillage = (place.village || "").toLowerCase();
         const pCategory = (place.category || "").toLowerCase();
 
         const curState = selectedState.toLowerCase();
         const curDistrict = selectedDistrict.toLowerCase();
 
-        // 1. अगर सर्च खाली है, तो सिर्फ चुने गए राज्य और ज़िले का डेटा दिखेगा
+        // 1. सामान्य स्थिति: सिर्फ चुने गए राज्य और ज़िले का डेटा
         if (!searchText) {
-            if (pState !== curState || pDistrict !== curDistrict) {
+            // स्पेलिंग लचीलापन (जैसे ayodhya / ayodya दोनों को स्वीकार करेगा)
+            const matchDistrict = (pDistrict === curDistrict) || 
+                                  (curDistrict.includes("ayod") && pDistrict.includes("ayod"));
+            const matchState = (pState === curState) || 
+                               (curState.includes("uttar") && pState.includes("uttar"));
+
+            if (!matchState || !matchDistrict) {
                 continue;
             }
         } else {
-            // 2. सर्च में कुछ भी टाइप करने पर पूरे डेटाबेस में कहीं भी मैच करेगा
+            // 2. सर्च करने पर: नाम, ज़िला, राज्य, गाँव सब जगह खोजेगा
             const isMatch = pName.includes(searchText) || 
                             pVillage.includes(searchText) || 
                             pDistrict.includes(searchText) || 
@@ -257,7 +266,7 @@ function renderCards() {
 
         count++;
 
-        const displayImage = place.imageUrl || "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=1000&auto=format&fit=crop&q=80";
+        const displayImage = place.imageUrl || "https://images.unsplash.com/photo-1706185890886-07a82c448bb0?w=1000&auto=format&fit=crop&q=80";
         const locDisplay = place.village ? `${place.village}, ${place.district || selectedDistrict}` : `${place.district || selectedDistrict}, ${place.state || selectedState}`;
         const author = place.adminId || "@spidey_ahamiyat";
 
@@ -296,7 +305,7 @@ function renderCards() {
 function initOrUpdateMap(targetLat = null, targetLng = null, placeTitle = null, placeSub = null) {
     const coords = (targetLat && targetLng) 
         ? [targetLat, targetLng] 
-        : (districtCoords[selectedDistrict] || [26.1209, 85.3647]);
+        : (districtCoords[selectedDistrict] || [26.7922, 82.1998]);
 
     const title = placeTitle || `${selectedDistrict} हेरिटेज मैप`;
     const sub = placeSub || `${selectedState}`;
@@ -338,7 +347,7 @@ function navigateToPlace(placeId) {
 
     showSection('map');
 
-    const defaultCoords = districtCoords[place.district || selectedDistrict] || [26.1209, 85.3647];
+    const defaultCoords = districtCoords[place.district || selectedDistrict] || [26.7922, 82.1998];
     const lat = place.lat || defaultCoords[0];
     const lng = place.lng || defaultCoords[1];
 
@@ -353,7 +362,7 @@ function open360View(placeId) {
     const place = mergedData[placeId];
     if (!place) return;
 
-    const imgUrl = place.imageUrl || "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=1000&auto=format&fit=crop&q=80";
+    const imgUrl = place.imageUrl || "https://images.unsplash.com/photo-1706185890886-07a82c448bb0?w=1000&auto=format&fit=crop&q=80";
     document.getElementById("panoTitle").innerText = `${place.name} (360° व्यू)`;
     document.getElementById("panoModal").style.display = "flex";
 
@@ -412,7 +421,7 @@ function showSection(sectionName) {
     }
 }
 
-// ================= 🇮🇳 BHASHINI AI + TTS HYBRID ENGINE =================
+// भाषिणी AI वॉइस गाइड
 async function startAIGuide(placeId) {
     const mergedData = { ...defaultPlaces, ...cloudPlaces };
     const place = mergedData[placeId];
@@ -425,21 +434,18 @@ async function startAIGuide(placeId) {
         audioStatus.innerText = `🔊 Bhashini AI बोल रहा है (${selectedLang.toUpperCase()})...`;
     }
 
-    // क्षेत्रीय भाषा प्रारूप अनुकूलन (Regional Dialect Adaptation)
     let textToSpeak = place.story;
     if (selectedLang === "bho") {
-        textToSpeak = `प्रणाम! ई बा ${place.name} के पावन इतिहास। ${place.story}`;
+        textToSpeak = `जय सिया राम! प्रणाम, ई बा ${place.name} के पावन इतिहास। ${place.story}`;
     } else if (selectedLang === "mai") {
-        textToSpeak = `प्रणाम! अहांक स्वागत अछि ${place.name} में। ${place.story}`;
+        textToSpeak = `जय सिया राम! अहांक स्वागत अछि ${place.name} में। ${place.story}`;
     } else if (selectedLang === "pa") {
         textToSpeak = `ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ ਜੀ! ਇਹ ਹੈ ${place.name} ਦਾ ਇਤਿਹਾਸ। ${place.story}`;
     }
 
-    // अगर Bhashini ULCA API कॉन्फ़िगर है तो सर्वर से आवाज़ लाएगा, अन्यथा स्मार्ट लोकल TTS फॉलबैक
     try {
         playBrowserTTS(textToSpeak, selectedLang);
     } catch (e) {
-        console.warn("Bhashini Fallback Activated:", e);
         playBrowserTTS(textToSpeak, "hi");
     }
 }
@@ -452,8 +458,6 @@ function playBrowserTTS(text, langCode) {
     utterThis.rate = 0.88;
 
     const voices = synth.getVoices();
-    
-    // उपयुक्त भाषा कोड मैप करना
     const langMap = {
         "hi": "hi-IN",
         "bho": "hi-IN",
@@ -463,7 +467,6 @@ function playBrowserTTS(text, langCode) {
     };
 
     const targetCode = langMap[langCode] || "hi-IN";
-
     const voice = voices.find(v => 
         v.lang.toLowerCase().includes(targetCode.toLowerCase()) || 
         v.name.toLowerCase().includes(langCode)
@@ -479,7 +482,7 @@ function playBrowserTTS(text, langCode) {
     synth.speak(utterThis);
 }
 
-// लोड और इवेंट लिसनर्स
+// इनिशियलाइजेशन
 document.addEventListener("DOMContentLoaded", () => {
     checkLocationSelection();
     listenToCloudData();
@@ -503,4 +506,4 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("navHome")?.addEventListener("click", () => showSection('home'));
     document.getElementById("navMap")?.addEventListener("click", () => showSection('map'));
     document.getElementById("navBadges")?.addEventListener("click", () => showSection('badges'));
-});
+});s
