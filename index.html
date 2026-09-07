@@ -6,17 +6,14 @@
     <title>विहान पुरखा - Vihaan Purkha</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Pannellum 360° Panorama Viewer CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <!-- स्प्लैश स्क्रीन (टाइपराइटर वेलकम एनिमेशन) -->
     <div id="splashScreen" class="splash-overlay">
         <div class="splash-content">
             <div class="splash-logo">वि</div>
@@ -26,54 +23,58 @@
         </div>
     </div>
 
-    <!-- मुख्य ऐप कंटेनर -->
+    <div id="locationModal" class="location-modal-overlay">
+        <div class="location-modal-card">
+            <div class="loc-badge">📍</div>
+            <h3>अपनी धरोहर चुनें</h3>
+            <p class="loc-subtitle">अपनी स्थानीय संस्कृति से जुड़ने के लिए राज्य और ज़िला चुनें</p>
+            
+            <div class="form-group">
+                <label>राज्य (State)</label>
+                <select id="stateSelect" onchange="onStateChange()">
+                    <option value="">-- राज्य चुनें --</option>
+                    <option value="Bihar">बिहार (Bihar)</option>
+                    <option value="Punjab">पंजाब (Punjab)</option>
+                    <option value="Uttar Pradesh">उत्तर प्रदेश (Uttar Pradesh)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>ज़िला (District)</label>
+                <select id="districtSelect" disabled>
+                    <option value="">-- पहले राज्य चुनें --</option>
+                </select>
+            </div>
+
+            <button class="loc-confirm-btn" onclick="confirmLocation()">धरोहर एक्सप्लोर करें ➔</button>
+        </div>
+    </div>
+
     <div class="app-container">
-        <!-- टॉप हेडर व लोगो -->
         <header class="header">
             <div class="brand-row">
-                <div class="logo-badge" style="padding: 0; overflow: hidden; background: transparent; border-radius: 14px;">
-  <svg viewBox="0 0 500 500" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="opt2Bg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#1e293b"/>
-        <stop offset="100%" stop-color="#0f172a"/>
-      </linearGradient>
-      <linearGradient id="opt2Ring" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#e67e22"/>
-        <stop offset="100%" stop-color="#f39c12"/>
-      </linearGradient>
-    </defs>
-    <!-- डार्क बैकग्राउंड -->
-    <rect width="500" height="500" rx="110" fill="url(#opt2Bg)"/>
-    <!-- 360° रोटेशन रिंग -->
-    <circle cx="250" cy="250" r="170" fill="none" stroke="url(#opt2Ring)" stroke-width="12" stroke-dasharray="24 12"/>
-    <!-- इनर ग्लो सर्कल -->
-    <circle cx="250" cy="250" r="130" fill="#d35400" opacity="0.25"/>
-    <!-- केंद्र में 'वि' अक्षर -->
-    <text x="250" y="295" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="160" font-weight="900" fill="#f39c12" text-anchor="middle">वि</text>
-    <!-- ऑडियो/360° डॉट संकेतक -->
-    <circle cx="250" cy="65" r="14" fill="#f39c12"/>
-    <circle cx="250" cy="435" r="14" fill="#e67e22"/>
-  </svg>
-</div>
+                <div class="logo-badge">वि</div>
                 <div class="brand-text">
                     <h2>विहान पुरखा</h2>
                     <p>आपन इतिहास, नई आवाज़</p>
                 </div>
             </div>
 
-            <!-- खोज और भाषा चयन -->
+            <div class="current-location-chip" onclick="openLocationPicker()">
+                <span id="activeLocLabel">📍 स्थान चुनें</span>
+                <span class="edit-loc-icon">बदलें ✍️</span>
+            </div>
+
             <div class="header-controls">
-                <input type="text" class="search-bar" placeholder="मुजफ्फरपुर में स्थल खोजें...">
+                <input type="text" class="search-bar" placeholder="धरोहर, स्थान या कस्बा खोजें...">
                 <select id="guideLanguage" class="lang-select">
                     <option value="hi-IN">🇮🇳 हिंदी</option>
-                    <option value="bho-IN">🌾 भोजपुरी/मैथिली</option>
+                    <option value="bho-IN">🌾 स्थानीय टोन</option>
                     <option value="en-IN">🌐 English</option>
                 </select>
             </div>
         </header>
 
-        <!-- होम सेक्शन -->
         <div id="homeSection">
             <div class="categories">
                 <button class="cat-btn active">सभी</button>
@@ -86,11 +87,10 @@
             <div class="card-list" id="dynamicCardList"></div>
         </div>
 
-        <!-- मैप सेक्शन -->
         <div id="mapSection" style="display: none; padding: 20px; text-align: center;">
-            <h3 style="color: #d35400; margin-bottom: 15px;">मुजफ्फरपुर हेरिटेज मैप</h3>
+            <h3 style="color: #d35400; margin-bottom: 15px;">हेरिटेज मैप</h3>
             <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d114674.19502931252!2d85.31609104868297!3d26.12871146864197!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39ed10e74b3e6a9f%3A0x6b306b328a6f44d8!2sMuzaffarpur%2C%20Bihar!5e0!3m2!1sen!2sin!4v1700000000000" 
+                src="https://maps.google.com/maps?q=Muzaffarpur&t=&z=13&ie=UTF8&iwloc=&output=embed" 
                 width="100%" 
                 height="340" 
                 style="border:0; border-radius: 12px;" 
@@ -99,20 +99,18 @@
             </iframe>
         </div>
 
-        <!-- बैजेज सेक्शन -->
         <div id="badgesSection" style="display: none; padding: 20px;">
             <h3 style="color: #d35400; margin-bottom: 15px; text-align:center;">आपके डिजिटल बैजेज (XP)</h3>
             <div style="background: #fff3e0; border-left: 5px solid #d35400; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
-                <strong>🥇 मुजफ्फरपुर एक्सप्लोरर</strong>
-                <p style="font-size: 0.85em; color: #555; margin-top: 3px;">50 XP प्राप्त किया (बाबा गरीबनाथ दर्शन)</p>
+                <strong>🥇 हेरिटेज एक्सप्लोरर</strong>
+                <p style="font-size: 0.85em; color: #555; margin-top: 3px;">50 XP प्राप्त किया (स्थानीय दर्शन)</p>
             </div>
             <div style="background: #e8f5e9; border-left: 5px solid #2e7d32; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
                 <strong>🎨 लोकल क्राफ्ट सपोर्टर</strong>
-                <p style="font-size: 0.85em; color: #555; margin-top: 3px;">100 XP प्राप्त किया (सुतापट्टी लहठी कला)</p>
+                <p style="font-size: 0.85em; color: #555; margin-top: 3px;">100 XP प्राप्त किया (शिल्पकला व मंडी)</p>
             </div>
         </div>
 
-        <!-- 360° पैनोरमा मॉडल (फुलस्क्रीन पॉपअप) -->
         <div id="panoModal" class="pano-modal">
             <div class="pano-modal-content">
                 <div class="pano-header">
@@ -124,12 +122,10 @@
             </div>
         </div>
 
-        <!-- AI ऑडियो स्टेटस -->
         <div id="audioStatus">
             🔊 विहान पुरखा AI बोल रहा है...
         </div>
 
-        <!-- बॉटम नेविगेशन बार -->
         <nav class="bottom-nav">
             <button class="nav-item active-nav" id="navHome">🏠 <span>होम</span></button>
             <button class="nav-item" id="navMap">🗺️ <span>मैप</span></button>
@@ -137,7 +133,6 @@
         </nav>
     </div>
 
-    <!-- टाइपराइटर व स्प्लैश स्क्रीन ट्रिगर स्क्रिप्ट -->
     <script>
         const welcomeText = "विहान पुरखा";
         let charIndex = 0;
@@ -159,9 +154,9 @@
                     splash.classList.add("splash-fade-out");
                     setTimeout(() => {
                         splash.style.display = "none";
-                    }, 600);
+                    }, 500);
                 }
-            }, 2200);
+            }, 2000);
         });
     </script>
 
