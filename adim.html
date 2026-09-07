@@ -28,17 +28,10 @@
             margin-bottom: 20px;
         }
         .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #d35400, #f39c12);
-            color: white;
+            width: 48px;
+            height: 48px;
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(211, 84, 0, 0.3);
+            overflow: hidden;
         }
         h2 { color: #0f172a; margin: 0; font-size: 1.4rem; font-weight: 800; }
         .sub { font-size: 0.8rem; color: #64748b; margin: 0; }
@@ -94,37 +87,34 @@
 <body>
     <div class="admin-card">
         <div class="logo-box">
-    <!-- ऑप्शन 2 लोगो -->
-    <div class="logo-icon" style="padding: 0; overflow: hidden; background: transparent; border-radius: 12px; width: 48px; height: 48px;">
-        <svg viewBox="0 0 500 500" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="opt2Bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#1e293b"/>
-                    <stop offset="100%" stop-color="#0f172a"/>
-                </linearGradient>
-                <linearGradient id="opt2Ring" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#e67e22"/>
-                    <stop offset="100%" stop-color="#f39c12"/>
-                </linearGradient>
-            </defs>
-            <rect width="500" height="500" rx="110" fill="url(#opt2Bg)"/>
-            <circle cx="250" cy="250" r="170" fill="none" stroke="url(#opt2Ring)" stroke-width="14" stroke-dasharray="24 12"/>
-            <circle cx="250" cy="250" r="130" fill="#d35400" opacity="0.25"/>
-            <text x="250" y="295" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="160" font-weight="900" fill="#f39c12" text-anchor="middle">वि</text>
-            <circle cx="250" cy="65" r="14" fill="#f39c12"/>
-            <circle cx="250" cy="435" r="14" fill="#e67e22"/>
-        </svg>
-    </div>
-    <div>
-        <h2>विहान पुरखा</h2>
-        <p class="sub">एडमिन मैनेजमेंट कंसोल</p>
-    </div>
-</div>
+            <div class="logo-icon">
+                <svg viewBox="0 0 500 500" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="opt2Bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#1e293b"/>
+                            <stop offset="100%" stop-color="#0f172a"/>
+                        </linearGradient>
+                        <linearGradient id="opt2Ring" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#e67e22"/>
+                            <stop offset="100%" stop-color="#f39c12"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="500" height="500" rx="110" fill="url(#opt2Bg)"/>
+                    <circle cx="250" cy="250" r="170" fill="none" stroke="url(#opt2Ring)" stroke-width="14" stroke-dasharray="24 12"/>
+                    <circle cx="250" cy="250" r="130" fill="#d35400" opacity="0.25"/>
+                    <text x="250" y="295" font-family="sans-serif" font-size="160" font-weight="900" fill="#f39c12" text-anchor="middle">वि</text>
+                </svg>
+            </div>
+            <div>
+                <h2>विहान पुरखा</h2>
+                <p class="sub">एडमिन मैनेजमेंट कंसोल</p>
+            </div>
+        </div>
 
         <label>एडमिन हैंडल</label>
         <input type="text" id="adminId" value="@spidey_ahamiyat" required>
 
-        <label>स्थान ID (Unique ID बिना स्पेस के)</label>
+        <label>स्थान ID (Unique ID जैसे: garibnath_mandir)</label>
         <input type="text" id="placeId" placeholder="garibnath_mandir" required>
 
         <label>स्थान का नाम</label>
@@ -133,17 +123,27 @@
         <div class="row-grid">
             <div>
                 <label>राज्य (State)</label>
-                <input type="text" id="placeState" value="Bihar" required>
+                <select id="placeState" onchange="updateDistrictOptions()">
+                    <option value="Bihar">Bihar</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                </select>
             </div>
             <div>
                 <label>ज़िला (District)</label>
-                <input type="text" id="placeDistrict" value="Muzaffarpur" required>
-            </div>
-            <div>
-                <label>गाँव / कस्बा (Locality)</label>
-                <input type="text" id="placeVillage" placeholder="पुरानी बाज़ार" required>
+                <select id="placeDistrict">
+                    <option value="Muzaffarpur">Muzaffarpur</option>
+                    <option value="Patna">Patna</option>
+                    <option value="Gaya">Gaya</option>
+                    <option value="Darbhanga">Darbhanga</option>
+                    <option value="Bhagalpur">Bhagalpur</option>
+                    <option value="Vaishali">Vaishali</option>
+                </select>
             </div>
         </div>
+
+        <label>गाँव / मोहल्ला / इलाका</label>
+        <input type="text" id="placeVillage" placeholder="पुरानी बाज़ार" required>
 
         <label>स्थान की फ़ोटो अपलोड करें</label>
         <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
@@ -168,5 +168,24 @@
     </div>
 
     <script src="admin.js"></script>
+    <script>
+        const adminDistricts = {
+            "Bihar": ["Muzaffarpur", "Patna", "Gaya", "Darbhanga", "Bhagalpur", "Vaishali"],
+            "Punjab": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala"],
+            "Uttar Pradesh": ["Varanasi", "Ayodhya", "Lucknow", "Agra", "Mathura"]
+        };
+
+        function updateDistrictOptions() {
+            const st = document.getElementById("placeState").value;
+            const dist = document.getElementById("placeDistrict");
+            dist.innerHTML = "";
+            adminDistricts[st].forEach(d => {
+                const opt = document.createElement("option");
+                opt.value = d;
+                opt.innerText = d;
+                dist.appendChild(opt);
+            });
+        }
+    </script>
 </body>
 </html>
