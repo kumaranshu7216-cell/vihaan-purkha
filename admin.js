@@ -12,7 +12,7 @@ const db = firebase.firestore();
 
 let base64Image = "";
 
-// फ़ोटो को कंप्रेस करके Base64 में बदलना
+// फ़ोटो कंप्रेसर (क्लाउड लोड तेज़ करने के लिए)
 function previewImage(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -25,7 +25,6 @@ function previewImage(event) {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
 
-            // आकार 600px तक स्केल करना ताकि लोड फ़ास्ट हो
             const maxWidth = 600;
             const scaleSize = maxWidth / img.width;
             canvas.width = maxWidth;
@@ -47,23 +46,23 @@ function saveData() {
     const adminId = document.getElementById("adminId").value.trim();
     const placeId = document.getElementById("placeId").value.trim();
     const name = document.getElementById("placeName").value.trim();
-    const state = document.getElementById("placeState").value.trim();
-    const district = document.getElementById("placeDistrict").value.trim();
+    const state = document.getElementById("placeState").value;
+    const district = document.getElementById("placeDistrict").value;
     const village = document.getElementById("placeVillage").value.trim();
     const category = document.getElementById("placeCategory").value;
     const story = document.getElementById("placeStory").value.trim();
 
     if (!adminId || !placeId || !name || !story) {
-        alert("कृपया सभी अनिवार्य बॉक्स (ID, नाम, कहानी) भरें!");
+        alert("कृपया सभी आवश्यक फ़ील्ड्स भरें!");
         return;
     }
 
     const dataObj = {
         adminId: adminId,
         name: name,
-        state: state || "Bihar",
-        district: district || "Muzaffarpur",
-        village: village || "",
+        state: state,
+        district: district,
+        village: village,
         imageUrl: base64Image || "",
         category: category,
         story: story,

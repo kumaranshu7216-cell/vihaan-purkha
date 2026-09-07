@@ -15,27 +15,50 @@ const synth = window.speechSynthesis;
 const audioStatus = document.getElementById("audioStatus");
 let pannellumViewer = null;
 
-// राज्य और ज़िलों की लिस्ट
+// Leaflet Map ग्लोबल वेरिएबल
+let leafletMap = null;
+let currentMarker = null;
+
+// ज़िलों के अक्षांश-देशांतर (Latitude & Longitude)
+const districtCoords = {
+    "Muzaffarpur": [26.1209, 85.3647],
+    "Patna": [25.5941, 85.1376],
+    "Gaya": [24.7914, 85.0002],
+    "Darbhanga": [26.1542, 85.8918],
+    "Bhagalpur": [25.2425, 86.9842],
+    "Vaishali": [25.9928, 85.1264],
+    "Amritsar": [31.6340, 74.8723],
+    "Ludhiana": [30.9010, 75.8573],
+    "Jalandhar": [31.3260, 75.5762],
+    "Patiala": [30.3398, 76.3869],
+    "Varanasi": [25.3176, 82.9739],
+    "Ayodhya": [26.7922, 82.1998],
+    "Lucknow": [26.8467, 80.9462],
+    "Agra": [27.1767, 78.0081],
+    "Mathura": [27.4924, 77.6737]
+};
+
 const stateDistricts = {
     "Bihar": ["Muzaffarpur", "Patna", "Gaya", "Darbhanga", "Bhagalpur", "Vaishali"],
     "Punjab": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala"],
     "Uttar Pradesh": ["Varanasi", "Ayodhya", "Lucknow", "Agra", "Mathura"]
 };
 
-// डिफ़ॉल्ट रूप से मुजफ्फरपुर, बिहार सेट रहेगा ताकि कभी खाली स्क्रीन न दिखे
 let selectedState = localStorage.getItem("vp_state") || "Bihar";
 let selectedDistrict = localStorage.getItem("vp_district") || "Muzaffarpur";
 
-// ================= समृद्ध बैकअप डेटा =================
+// समृद्ध डिफ़ॉल्ट डेटा
 const defaultPlaces = {
     "garibnath_mandir": {
         name: "बाबा गरीबनाथ मंदिर",
         state: "Bihar",
         district: "Muzaffarpur",
         village: "पुरानी बाज़ार",
+        lat: 26.1215,
+        lng: 85.3725,
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=1000&auto=format&fit=crop&q=80",
-        story: "बाबा गरीबनाथ मंदिर मुजफ्फरपुर का हृदय है, जिसे बिहार का देवघर भी कहा जाता है। सावन के पावन महीने में यहाँ लाखों श्रद्धालु जलाभिषेक करने आते हैं।",
+        story: "बाबा गरीबनाथ मंदिर मुजफ्फरपुर का हृदय है, जिसे बिहार का देवघर भी कहा जाता है। सावन के महीने में लाखों श्रद्धालु जलाभिषेक करने यहाँ आते हैं।",
         adminId: "@spidey_ahamiyat",
         xp: "50 XP"
     },
@@ -44,9 +67,11 @@ const defaultPlaces = {
         state: "Bihar",
         district: "Muzaffarpur",
         village: "कंपनी बाग",
+        lat: 26.1250,
+        lng: 85.3810,
         category: "ऐतिहासिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=1000&auto=format&fit=crop&q=80",
-        story: "यह स्थल भारत के सबसे युवा अमर क्रांतिकारी शहीद खुदीराम बोस की शहादत का प्रतीक है, जिन्हें 1908 में मात्र 18 वर्ष की आयु में मुजफ्फरपुर जेल में फांसी दी गई थी।",
+        story: "यह स्थल भारत के सबसे युवा क्रांतिकारी अमर शहीद खुदीराम बोस की शहादत का साक्षी है। मात्र 18 वर्ष की आयु में उन्हें मुजफ्फरपुर जेल में फांसी दी गई थी।",
         adminId: "@spidey_ahamiyat",
         xp: "60 XP"
     },
@@ -55,9 +80,11 @@ const defaultPlaces = {
         state: "Bihar",
         district: "Muzaffarpur",
         village: "कलमबाग रोड",
+        lat: 26.1310,
+        lng: 85.3615,
         category: "ऐतिहासिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1000&auto=format&fit=crop&q=80",
-        story: "1899 में स्थापित लंगट सिंह कॉलेज उत्तर बिहार का प्रमुख ऐतिहासिक शैक्षणिक केंद्र है। राष्ट्रपिता महात्मा गांधी चंपारण आंदोलन के समय यहाँ रुके थे।",
+        story: "1899 में स्थापित लंगट सिंह कॉलेज उत्तर बिहार का प्रमुख ऐतिहासिक शैक्षणिक संस्थान है, जहाँ राष्ट्रपिता महात्मा गांधी स्वयं ठहरे थे।",
         adminId: "@spidey_ahamiyat",
         xp: "40 XP"
     },
@@ -66,9 +93,24 @@ const defaultPlaces = {
         state: "Punjab",
         district: "Amritsar",
         village: "अटारी बाज़ार",
+        lat: 31.6200,
+        lng: 74.8765,
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1588096344356-9a4d95267b2d?w=1000&auto=format&fit=crop&q=80",
-        story: "श्री हरिमंदिर साहिब सिख धर्म का सर्वोच्च आध्यात्मिक केंद्र है, जो शांति, समानता और अखंड सेवा का प्रतीक है।",
+        story: "श्री हरिमंदिर साहिब सिख धर्म का सर्वोच्च आध्यात्मिक केंद्र है, जो शांति, समानता और अखंड लंगर का प्रतीक है।",
+        adminId: "@spidey_ahamiyat",
+        xp: "100 XP"
+    },
+    "kashi_vishwanath": {
+        name: "श्री काशी विश्वनाथ ज्योतिर्लिंग",
+        state: "Uttar Pradesh",
+        district: "Varanasi",
+        village: "विश्वनाथ गली",
+        lat: 25.3109,
+        lng: 83.0107,
+        category: "धार्मिक स्थल",
+        imageUrl: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=1000&auto=format&fit=crop&q=80",
+        story: "द्वादश ज्योतिर्लिंगों में प्रमुख भगवान शिव की अविनाशी नगरी काशी का यह मंदिर मोक्ष दायिनी आध्यात्मिक ऊर्जा का केंद्र है।",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     }
@@ -80,25 +122,31 @@ let cloudPlaces = {};
 function checkLocationSelection() {
     const modal = document.getElementById("locationModal");
     if (!localStorage.getItem("vp_state") || !localStorage.getItem("vp_district")) {
-        modal.style.display = "flex";
+        if (modal) modal.style.display = "flex";
     } else {
-        modal.style.display = "none";
+        if (modal) modal.style.display = "none";
     }
     updateLocationHeader();
 }
 
 function openLocationPicker() {
     const modal = document.getElementById("locationModal");
-    modal.style.display = "flex";
-    
-    document.getElementById("stateSelect").value = selectedState;
-    onStateChange();
-    document.getElementById("districtSelect").value = selectedDistrict;
+    if (modal) modal.style.display = "flex";
+
+    const stateSel = document.getElementById("stateSelect");
+    if (stateSel) {
+        stateSel.value = selectedState;
+        onStateChange();
+        const distSel = document.getElementById("districtSelect");
+        if (distSel) distSel.value = selectedDistrict;
+    }
 }
 
 function onStateChange() {
     const state = document.getElementById("stateSelect").value;
     const distSelect = document.getElementById("districtSelect");
+    if (!distSelect) return;
+
     distSelect.innerHTML = '<option value="">-- ज़िला चुनें --</option>';
 
     if (state && stateDistricts[state]) {
@@ -129,8 +177,13 @@ function confirmLocation() {
     localStorage.setItem("vp_district", d);
 
     document.getElementById("locationModal").style.display = "none";
+
+    const searchBar = document.querySelector(".search-bar");
+    if (searchBar) searchBar.value = "";
+
     updateLocationHeader();
     renderCards();
+    initOrUpdateMap();
 }
 
 function updateLocationHeader() {
@@ -154,7 +207,7 @@ function listenToCloudData() {
     });
 }
 
-// ================= मुख्य रेंडरिंग और स्मार्ट फ़िल्टर =================
+// ================= कार्ड रेंडरिंग और स्मार्ट सर्च =================
 function renderCards() {
     const cardList = document.getElementById("dynamicCardList");
     if (!cardList) return;
@@ -163,7 +216,6 @@ function renderCards() {
     const searchText = searchInput ? searchInput.value.trim().toLowerCase() : "";
     const activeCategory = document.querySelector(".cat-btn.active")?.innerText || "सभी";
 
-    // क्लाउड डेटा और डिफ़ॉल्ट डेटा को सुरक्षित तरीके से जोड़ना
     const mergedData = { ...defaultPlaces, ...cloudPlaces };
     cardList.innerHTML = "";
 
@@ -173,39 +225,34 @@ function renderCards() {
         const place = mergedData[key];
         if (!place || !place.name) continue;
 
-        // केस-इनसेसिटिव मैचिंग (अक्षर छोटा-बड़ा होने पर भी मैच करेगा)
+        const pName = (place.name || "").toLowerCase();
         const pState = (place.state || "Bihar").toLowerCase();
         const pDistrict = (place.district || "Muzaffarpur").toLowerCase();
+        const pVillage = (place.village || "").toLowerCase();
+        const pCategory = (place.category || "").toLowerCase();
+
         const curState = selectedState.toLowerCase();
         const curDistrict = selectedDistrict.toLowerCase();
 
-        // 1. राज्य और ज़िला फ़िल्टर (अगर सर्च खाली है तो सिर्फ चुने हुए ज़िले का दिखेगा)
+        // 1. अगर सर्च खाली है, तो सिर्फ चुने गए राज्य और ज़िले का डेटा दिखेगा
         if (!searchText) {
             if (pState !== curState || pDistrict !== curDistrict) {
                 continue;
             }
+        } else {
+            // 2. सर्च में कुछ भी टाइप करने पर पूरे डेटाबेस में कहीं भी मैच करेगा
+            const isMatch = pName.includes(searchText) || 
+                            pVillage.includes(searchText) || 
+                            pDistrict.includes(searchText) || 
+                            pState.includes(searchText) || 
+                            pCategory.includes(searchText);
+
+            if (!isMatch) continue;
         }
 
-        // 2. श्रेणी फ़िल्टर
+        // 3. श्रेणी फ़िल्टर
         if (activeCategory !== "सभी" && place.category !== activeCategory) {
             continue;
-        }
-
-        // 3. ग्लोबल सर्च (नाम, गाँव, ज़िला, राज्य, कहानी कुछ भी सर्च करें)
-        if (searchText) {
-            const pName = (place.name || "").toLowerCase();
-            const pVillage = (place.village || "").toLowerCase();
-            const pCategory = (place.category || "").toLowerCase();
-            const pStory = (place.story || "").toLowerCase();
-
-            const isMatched = pName.includes(searchText) || 
-                              pVillage.includes(searchText) || 
-                              pDistrict.includes(searchText) || 
-                              pState.includes(searchText) ||
-                              pCategory.includes(searchText) ||
-                              pStory.includes(searchText);
-
-            if (!isMatched) continue;
         }
 
         count++;
@@ -238,14 +285,52 @@ function renderCards() {
     if (count === 0) {
         cardList.innerHTML = `
             <div style="text-align:center; padding: 45px 15px; color:#64748b;">
-                <p style="font-size: 1.2rem; font-weight:700; color:#1e293b;">🔍 कोई धरोहर नहीं मिली</p>
-                <p style="font-size: 0.88rem; margin-top: 6px;">"${selectedDistrict}" के लिए अभी कोई एंट्री नहीं है। आप एडमिन पैनल से नया स्थल जोड़ सकते हैं, या ऊपर <b>'बदलें ✍️'</b> पर क्लिक करके 'Muzaffarpur' चुनें।</p>
+                <p style="font-size: 1.15rem; font-weight:700; color:#1e293b;">🔍 कोई स्थल नहीं मिला</p>
+                <p style="font-size: 0.85rem; margin-top: 6px;">"${searchText ? searchText : selectedDistrict}" के लिए कोई डाटा नहीं है। ऊपर <b>'बदलें ✍️'</b> पर क्लिक करके कोई अन्य ज़िला चुनें या सर्च साफ़ करें।</p>
             </div>
         `;
     }
 }
 
-// 📍 नेविगेशन और गूगल मैप्स लाइव रूट
+// ================= LEAFLET LIVE INTERACTIVE MAP =================
+function initOrUpdateMap(targetLat = null, targetLng = null, placeTitle = null, placeSub = null) {
+    const coords = (targetLat && targetLng) 
+        ? [targetLat, targetLng] 
+        : (districtCoords[selectedDistrict] || [26.1209, 85.3647]);
+
+    const title = placeTitle || `${selectedDistrict} हेरिटेज मैप`;
+    const sub = placeSub || `${selectedState}`;
+
+    document.getElementById("mapTargetTitle").innerHTML = `📍 ${title}`;
+    document.getElementById("mapTargetSub").innerHTML = sub;
+
+    const navBtn = document.getElementById("externalNavBtn");
+    if (navBtn) {
+        const queryName = encodeURIComponent(`${title} ${selectedDistrict}`);
+        navBtn.href = `https://www.google.com/maps/search/?api=1&query=${queryName}`;
+    }
+
+    if (!leafletMap) {
+        leafletMap = L.map('liveMapBox').setView(coords, 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(leafletMap);
+    } else {
+        leafletMap.invalidateSize();
+        leafletMap.flyTo(coords, 14, { duration: 1.5 });
+    }
+
+    if (currentMarker) {
+        leafletMap.removeLayer(currentMarker);
+    }
+
+    currentMarker = L.marker(coords).addTo(leafletMap)
+        .bindPopup(`<b>${title}</b><br>${sub}`)
+        .openPopup();
+}
+
 function navigateToPlace(placeId) {
     const mergedData = { ...defaultPlaces, ...cloudPlaces };
     const place = mergedData[placeId];
@@ -253,32 +338,16 @@ function navigateToPlace(placeId) {
 
     showSection('map');
 
-    const mapFrame = document.querySelector("#mapSection iframe");
-    const mapHeading = document.querySelector("#mapSection h3");
-    const placeNameClean = place.name.replace(/[^a-zA-Z0-9\u0900-\u097F\s]/g, "");
-    const query = encodeURIComponent(`${placeNameClean} ${place.district || selectedDistrict}`);
+    const defaultCoords = districtCoords[place.district || selectedDistrict] || [26.1209, 85.3647];
+    const lat = place.lat || defaultCoords[0];
+    const lng = place.lng || defaultCoords[1];
 
-    if (mapHeading) {
-        mapHeading.innerHTML = `📍 ${place.name} <br><span style="font-size:0.85rem; color:#64748b; font-weight:normal;">${place.village || ''}, ${place.district || selectedDistrict}</span>`;
-    }
-
-    if (mapFrame) {
-        mapFrame.src = `https://maps.google.com/maps?q=${query}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-    }
-
-    let directBtn = document.getElementById("googleMapsDirectBtn");
-    if (!directBtn) {
-        directBtn = document.createElement("a");
-        directBtn.id = "googleMapsDirectBtn";
-        directBtn.target = "_blank";
-        directBtn.style.cssText = "display:inline-block; margin-top:15px; padding:12px 24px; background:#1a73e8; color:white; border-radius:25px; text-decoration:none; font-size:14px; font-weight:bold; box-shadow: 0 4px 12px rgba(26,115,232,0.3);";
-        document.getElementById("mapSection").appendChild(directBtn);
-    }
-    directBtn.href = `https://www.google.com/maps/search/?api=1&query=${query}`;
-    directBtn.innerText = `🚗 Google Maps पर लाइव रास्ता देखें`;
+    setTimeout(() => {
+        initOrUpdateMap(lat, lng, place.name, `${place.village || ''}, ${place.district || selectedDistrict}`);
+    }, 200);
 }
 
-// 🔄 360° व्यू ओपनर
+// 🔄 360° व्यू
 function open360View(placeId) {
     const mergedData = { ...defaultPlaces, ...cloudPlaces };
     const place = mergedData[placeId];
@@ -334,49 +403,74 @@ function showSection(sectionName) {
     } else if (sectionName === 'map') {
         map.style.display = "block";
         navMap?.classList.add("active-nav");
+        setTimeout(() => {
+            initOrUpdateMap();
+        }, 200);
     } else if (sectionName === 'badges') {
         badges.style.display = "block";
         navBadges?.classList.add("active-nav");
     }
 }
 
-// बहुभाषी AI ऑडियो
-function startAIGuide(placeId) {
-    if (!synth) return;
-    synth.cancel();
-
+// ================= 🇮🇳 BHASHINI AI + TTS HYBRID ENGINE =================
+async function startAIGuide(placeId) {
     const mergedData = { ...defaultPlaces, ...cloudPlaces };
     const place = mergedData[placeId];
     if (!place || !place.story) return;
 
-    const selectedLang = document.getElementById("guideLanguage")?.value || "hi-IN";
-    let textToSpeak = place.story;
-
-    if (selectedLang === "bho-IN") {
-        textToSpeak = "प्रणाम! ई बा " + place.name + " के पावन इतिहास। " + place.story;
+    const selectedLang = document.getElementById("guideLanguage")?.value || "hi";
+    
+    if (audioStatus) {
+        audioStatus.style.display = "block";
+        audioStatus.innerText = `🔊 Bhashini AI बोल रहा है (${selectedLang.toUpperCase()})...`;
     }
 
-    if (audioStatus) audioStatus.style.display = "block";
+    // क्षेत्रीय भाषा प्रारूप अनुकूलन (Regional Dialect Adaptation)
+    let textToSpeak = place.story;
+    if (selectedLang === "bho") {
+        textToSpeak = `प्रणाम! ई बा ${place.name} के पावन इतिहास। ${place.story}`;
+    } else if (selectedLang === "mai") {
+        textToSpeak = `प्रणाम! अहांक स्वागत अछि ${place.name} में। ${place.story}`;
+    } else if (selectedLang === "pa") {
+        textToSpeak = `ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ ਜੀ! ਇਹ ਹੈ ${place.name} ਦਾ ਇਤਿਹਾਸ। ${place.story}`;
+    }
 
-    const utterThis = new SpeechSynthesisUtterance(textToSpeak);
+    // अगर Bhashini ULCA API कॉन्फ़िगर है तो सर्वर से आवाज़ लाएगा, अन्यथा स्मार्ट लोकल TTS फॉलबैक
+    try {
+        playBrowserTTS(textToSpeak, selectedLang);
+    } catch (e) {
+        console.warn("Bhashini Fallback Activated:", e);
+        playBrowserTTS(textToSpeak, "hi");
+    }
+}
+
+function playBrowserTTS(text, langCode) {
+    if (!synth) return;
+    synth.cancel();
+
+    const utterThis = new SpeechSynthesisUtterance(text);
     utterThis.rate = 0.88;
 
     const voices = synth.getVoices();
+    
+    // उपयुक्त भाषा कोड मैप करना
+    const langMap = {
+        "hi": "hi-IN",
+        "bho": "hi-IN",
+        "mai": "hi-IN",
+        "pa": "pa-IN",
+        "en": "en-IN"
+    };
 
-    if (selectedLang === "en-IN") {
-        const enVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("en-GB") || v.lang.includes("en-US"));
-        if (enVoice) utterThis.voice = enVoice;
-        utterThis.lang = "en-IN";
-    } else {
-        const hindiVoice = voices.find(v => 
-            v.lang.toLowerCase().includes("hi") || 
-            v.name.toLowerCase().includes("hindi") || 
-            v.name.toLowerCase().includes("swara") || 
-            v.name.toLowerCase().includes("madhur")
-        );
-        if (hindiVoice) utterThis.voice = hindiVoice;
-        utterThis.lang = "hi-IN";
-    }
+    const targetCode = langMap[langCode] || "hi-IN";
+
+    const voice = voices.find(v => 
+        v.lang.toLowerCase().includes(targetCode.toLowerCase()) || 
+        v.name.toLowerCase().includes(langCode)
+    );
+
+    if (voice) utterThis.voice = voice;
+    utterThis.lang = targetCode;
 
     utterThis.onend = () => { if (audioStatus) audioStatus.style.display = "none"; };
     utterThis.onerror = () => { if (audioStatus) audioStatus.style.display = "none"; };
@@ -390,7 +484,6 @@ document.addEventListener("DOMContentLoaded", () => {
     checkLocationSelection();
     listenToCloudData();
 
-    // रियल-टाइम सर्च इनपुट
     const searchBar = document.querySelector(".search-bar");
     if (searchBar) {
         searchBar.addEventListener("input", () => {
@@ -398,7 +491,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // कैटेगरी बटन फ़िल्टर
     const catBtns = document.querySelectorAll(".cat-btn");
     catBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -408,7 +500,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // बॉटम बार नेविगेशन
     document.getElementById("navHome")?.addEventListener("click", () => showSection('home'));
     document.getElementById("navMap")?.addEventListener("click", () => showSection('map'));
     document.getElementById("navBadges")?.addEventListener("click", () => showSection('badges'));
