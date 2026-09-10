@@ -18,7 +18,7 @@ let pannellumViewer = null;
 let leafletMap = null;
 let currentMarker = null;
 
-// ज़िलों के सटीक निर्देशांक (Latitude & Longitude)
+// ज़िलों के निर्देशांक
 const districtCoords = {
     "Muzaffarpur": [26.1209, 85.3647],
     "Patna": [25.5941, 85.1376],
@@ -46,11 +46,12 @@ const stateDistricts = {
 let selectedState = localStorage.getItem("vp_state") || "Bihar";
 let selectedDistrict = localStorage.getItem("vp_district") || "Muzaffarpur";
 
-// 100% सुपर-फास्ट और सुरक्षित CDN इमेज लिंक्स
+// प्रामाणिक हेरिटेज डेटा (हिंदी और इंग्लिश दोनों कहानियों के साथ)
 const defaultPlaces = {
     // बिहार
     "garibnath_mandir": {
         name: "बाबा गरीबनाथ मंदिर",
+        nameEn: "Baba Garibnath Temple",
         state: "Bihar",
         district: "Muzaffarpur",
         village: "पुरानी बाज़ार",
@@ -58,12 +59,14 @@ const defaultPlaces = {
         lng: 85.3725,
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80",
-        story: "बाबा गरीबनाथ मंदिर मुजफ्फरपुर का प्रसिद्ध शिव धाम है, जिसे बिहार का देवघर भी कहा जाता है। सावन में यहाँ लाखों श्रद्धालु जलाभिषेक करते हैं।",
+        story: "बाबा गरीबनाथ मंदिर मुजफ्फरपुर का प्रसिद्ध शिव धाम है, जिसे बिहार का देवघर भी कहा जाता है। सावन में यहाँ लाखों श्रद्धालु गंगाजल से जलाभिषेक करते हैं।",
+        storyEn: "Baba Garibnath Temple is a renowned spiritual shrine of Lord Shiva located in Muzaffarpur, also known as the Deoghar of Bihar. During the holy month of Shravan, millions of devotees visit here to offer holy Ganga water.",
         adminId: "@spidey_ahamiyat",
         xp: "50 XP"
     },
     "khudiram_bose_smarak": {
         name: "शहीद खुदीराम बोस स्मारक",
+        nameEn: "Shaheed Khudiram Bose Memorial",
         state: "Bihar",
         district: "Muzaffarpur",
         village: "कंपनी बाग",
@@ -71,12 +74,14 @@ const defaultPlaces = {
         lng: 85.3810,
         category: "ऐतिहासिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=800&auto=format&fit=crop&q=80",
-        story: "यह स्थल अमर बलिदानी शहीद खुदीराम बोस की शहादत का साक्षी है, जिन्हें मात्र 18 वर्ष की आयु में मुजफ्फरपुर में फांसी दी गई थी।",
+        story: "यह स्थल अमर बलिदानी शहीद खुदीराम बोस की शहादत का साक्षी है, जिन्हें मात्र 18 वर्ष की आयु में मुजफ्फरपुर जेल में फांसी दी गई थी।",
+        storyEn: "This memorial honors the supreme sacrifice of the young Indian revolutionary Shaheed Khudiram Bose, who was martyred at the age of eighteen in Muzaffarpur in 1908.",
         adminId: "@spidey_ahamiyat",
         xp: "60 XP"
     },
     "ashoka_pillar_vaishali": {
         name: "अशोक स्तंभ व बौद्ध स्तूप",
+        nameEn: "Ashoka Pillar & Buddhist Stupa",
         state: "Bihar",
         district: "Vaishali",
         village: "कोल्हुआ",
@@ -85,11 +90,13 @@ const defaultPlaces = {
         category: "ऐतिहासिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1600100397608-f010e08e1e12?w=800&auto=format&fit=crop&q=80",
         story: "सम्राट अशोक द्वारा बनवाया गया यह एकाश्म स्तंभ प्राचीन वैशाली के समृद्ध ऐतिहासिक और बौद्ध गौरव का प्रतीक है।",
+        storyEn: "Erected by Emperor Ashoka, this monolithic pillar surmounted by a life-sized lion stands as a timeless symbol of the rich historical and Buddhist heritage of Vaishali.",
         adminId: "@spidey_ahamiyat",
         xp: "80 XP"
     },
     "golghar_patna": {
         name: "गोलघर (Golghar)",
+        nameEn: "Golghar Patna",
         state: "Bihar",
         district: "Patna",
         village: "गांधी मैदान",
@@ -98,11 +105,13 @@ const defaultPlaces = {
         category: "ऐतिहासिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&auto=format&fit=crop&q=80",
         story: "1786 में कैप्टन जॉन गार्सटिन द्वारा निर्मित गोलघर बिना किसी खंभे का एक विशाल ऐतिहासिक अन्न भंडार है।",
+        storyEn: "Built in 1786 by Captain John Garstin, Golghar is an imposing beehive-shaped historic granary engineered without any pillars.",
         adminId: "@spidey_ahamiyat",
         xp: "50 XP"
     },
     "mahabodhi_temple": {
         name: "महाबोधि मंदिर (बोधगया)",
+        nameEn: "Mahabodhi Temple Bodh Gaya",
         state: "Bihar",
         district: "Gaya",
         village: "बोधगया",
@@ -111,6 +120,7 @@ const defaultPlaces = {
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1627894483216-2138af692e32?w=800&auto=format&fit=crop&q=80",
         story: "यूनेस्को विश्व धरोहर स्थल, जहाँ भगवान बुद्ध को पवित्र बोधि वृक्ष के नीचे ज्ञान प्राप्त हुआ था।",
+        storyEn: "A UNESCO World Heritage Site marking the sacred spot where Siddhartha Gautama, the Buddha, attained spiritual enlightenment beneath the Bodhi tree.",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     },
@@ -118,6 +128,7 @@ const defaultPlaces = {
     // पंजाब
     "golden_temple": {
         name: "श्री हरिमंदिर साहिब (स्वर्ण मंदिर)",
+        nameEn: "Sri Harmandir Sahib (Golden Temple)",
         state: "Punjab",
         district: "Amritsar",
         village: "अटारी बाज़ार",
@@ -126,6 +137,7 @@ const defaultPlaces = {
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1588096344356-9a4d95267b2d?w=800&auto=format&fit=crop&q=80",
         story: "सिख धर्म का सर्वोच्च आध्यात्मिक केंद्र, जो पवित्र अमृत सरोवर और अखंड लंगर सेवा का प्रतीक है।",
+        storyEn: "The preeminent spiritual center of Sikhism, revered globally for its divine golden architecture, sacred nectar pond, and round-the-clock free community kitchen (Langar).",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     },
@@ -133,6 +145,7 @@ const defaultPlaces = {
     // उत्तर प्रदेश
     "ram_mandir_ayodhya": {
         name: "श्री राम जन्मभूमि मंदिर",
+        nameEn: "Shri Ram Janmabhoomi Mandir",
         state: "Uttar Pradesh",
         district: "Ayodhya",
         village: "रामकोट, अयोध्या धाम",
@@ -141,11 +154,13 @@ const defaultPlaces = {
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1706185890886-07a82c448bb0?w=800&auto=format&fit=crop&q=80",
         story: "मर्यादा पुरुषोत्तम प्रभु श्री राम का यह भव्य जन्मभूमि मंदिर भारतीय आस्था और नागर स्थापत्य शैली का अनुपम प्रतीक है।",
+        storyEn: "The magnificent birthplace temple of Lord Shri Ram in Ayodhya, standing as an architectural masterpiece in the classical Nagara style and a revered epicenter of faith.",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     },
     "kashi_vishwanath": {
         name: "श्री काशी विश्वनाथ ज्योतिर्लिंग",
+        nameEn: "Shri Kashi Vishwanath Temple",
         state: "Uttar Pradesh",
         district: "Varanasi",
         village: "विश्वनाथ गली",
@@ -154,6 +169,7 @@ const defaultPlaces = {
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&auto=format&fit=crop&q=80",
         story: "द्वादश ज्योतिर्लिंगों में प्रमुख भगवान शिव की अविनाशी नगरी काशी का यह मंदिर मोक्ष और आध्यात्मिक ऊर्जा का केंद्र है।",
+        storyEn: "One of the most sacred of the twelve Jyotirlingas, situated in the eternal city of Varanasi along the holy river Ganga, revered as the realm of liberation and spiritual power.",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     }
@@ -235,7 +251,6 @@ function updateLocationHeader() {
     }
 }
 
-// ================= Firestore रियल-टाइम सिंक =================
 function listenToCloudData() {
     db.collection("places").onSnapshot((snapshot) => {
         cloudPlaces = {};
@@ -249,7 +264,6 @@ function listenToCloudData() {
     });
 }
 
-// नाम को सामान्य (Normalize) करने का फंक्शन
 function normalizeName(str) {
     if (!str) return "";
     return str.toLowerCase()
@@ -257,7 +271,6 @@ function normalizeName(str) {
         .replace(/mandir|temple|smarak|memorial/g, "");
 }
 
-// ================= कार्ड रेंडरिंग (सख्त नेम-मैचिंग डिडुप्लिकेशन) =================
 function renderCards() {
     const cardList = document.getElementById("dynamicCardList");
     if (!cardList) return;
@@ -269,7 +282,6 @@ function renderCards() {
     const mergedList = [];
     const seenNormalizedNames = new Set();
 
-    // 1. सबसे पहले क्लाउड से आया डेटा जोड़ें (Admin Data First)
     for (const key in cloudPlaces) {
         const item = cloudPlaces[key];
         if (item && item.name) {
@@ -278,12 +290,10 @@ function renderCards() {
         }
     }
 
-    // 2. डिफ़ॉल्ट डेटा तभी जोड़ें जब वैसा कोई नाम क्लाउड में न हो
     for (const key in defaultPlaces) {
         const item = defaultPlaces[key];
         if (item && item.name) {
             const norm = normalizeName(item.name);
-            // अगर एडमिन ने यह नाम पहले ही जोड़ दिया है, तो डिफ़ॉल्ट कार्ड छोड़ दें
             if (!seenNormalizedNames.has(norm)) {
                 mergedList.push({ id: key, ...item });
             }
@@ -302,7 +312,6 @@ function renderCards() {
         const curState = selectedState.toLowerCase().trim();
         const curDistrict = selectedDistrict.toLowerCase().trim();
 
-        // लोकेशन फ़िल्टर
         if (!searchText) {
             if (pState !== curState || pDistrict !== curDistrict) {
                 continue;
@@ -315,14 +324,12 @@ function renderCards() {
             if (!isMatch) continue;
         }
 
-        // श्रेणी फ़िल्टर
         if (activeCategory !== "सभी" && place.category !== activeCategory) {
             continue;
         }
 
         count++;
 
-        // इमेज वैलिडेशन (अगर इमेज नहीं है या लोड नहीं हुई तो सेफ इमेज)
         const fallbackImg = "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80";
         const displayImage = (place.imageUrl && place.imageUrl.trim() !== "") ? place.imageUrl : fallbackImg;
         const locDisplay = place.village ? `${place.village}, ${place.district || selectedDistrict}` : `${place.district || selectedDistrict}, ${place.state || selectedState}`;
@@ -359,7 +366,6 @@ function renderCards() {
     }
 }
 
-// ================= लाइव मैप =================
 function initOrUpdateMap(targetLat = null, targetLng = null, placeTitle = null, placeSub = null) {
     const coords = (targetLat && targetLng) 
         ? [targetLat, targetLng] 
@@ -411,7 +417,6 @@ function navigateToPlace(placeId) {
     }, 200);
 }
 
-// 🔄 360° व्यू
 function open360View(placeId) {
     const place = cloudPlaces[placeId] || defaultPlaces[placeId];
     if (!place) return;
@@ -443,7 +448,6 @@ function close360View() {
     }
 }
 
-// टैब नेविगेशन
 function showSection(sectionName) {
     const home = document.getElementById("homeSection");
     const map = document.getElementById("mapSection");
@@ -474,7 +478,7 @@ function showSection(sectionName) {
     }
 }
 
-// भाषिणी AI वॉइस गाइड
+// ================= 🇮🇳 BHASHINI AI + LIVE TRANSLATION ENGINE =================
 async function startAIGuide(placeId) {
     const place = cloudPlaces[placeId] || defaultPlaces[placeId];
     if (!place || !place.story) return;
@@ -483,10 +487,36 @@ async function startAIGuide(placeId) {
     
     if (audioStatus) {
         audioStatus.style.display = "block";
-        audioStatus.innerText = `🔊 Bhashini AI बोल रहा है (${selectedLang.toUpperCase()})...`;
+        audioStatus.innerText = `🔊 Bhashini AI Audio Playing (${selectedLang.toUpperCase()})...`;
     }
 
     let textToSpeak = place.story;
+
+    // 1. अगर इंग्लिश चुनी गई है:
+    if (selectedLang === "en") {
+        if (place.storyEn) {
+            textToSpeak = `Welcome! This is ${place.nameEn || place.name}. ${place.storyEn}`;
+            playBrowserTTS(textToSpeak, "en");
+            return;
+        } else {
+            // एडमिन द्वारा जोड़े गए नए कार्ड्स के लिए ऑटो-ट्रांसलेशन
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(place.story.slice(0, 450))}&langpair=hi|en`);
+                const data = await res.json();
+                if (data.responseData && data.responseData.translatedText) {
+                    textToSpeak = `Welcome to ${place.name}. ${data.responseData.translatedText}`;
+                } else {
+                    textToSpeak = `Welcome to ${place.name}. Here is the historic heritage overview.`;
+                }
+            } catch (err) {
+                textToSpeak = `Welcome to ${place.name}. A sacred historical heritage site.`;
+            }
+            playBrowserTTS(textToSpeak, "en");
+            return;
+        }
+    }
+
+    // 2. क्षेत्रीय बोलियों के लिए स्थानीय टोन व अभिवादन:
     if (selectedLang === "bho") {
         textToSpeak = `प्रणाम! ई बा ${place.name} के पावन इतिहास। ${place.story}`;
     } else if (selectedLang === "mai") {
@@ -495,11 +525,7 @@ async function startAIGuide(placeId) {
         textToSpeak = `ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ ਜੀ! ਇਹ ਹੈ ${place.name} ਦਾ ਇਤਿਹਾਸ। ${place.story}`;
     }
 
-    try {
-        playBrowserTTS(textToSpeak, selectedLang);
-    } catch (e) {
-        playBrowserTTS(textToSpeak, "hi");
-    }
+    playBrowserTTS(textToSpeak, selectedLang);
 }
 
 function playBrowserTTS(text, langCode) {
@@ -507,19 +533,34 @@ function playBrowserTTS(text, langCode) {
     synth.cancel();
 
     const utterThis = new SpeechSynthesisUtterance(text);
-    utterThis.rate = 0.88;
+    utterThis.rate = 0.90;
 
     const voices = synth.getVoices();
-    const langMap = { "hi": "hi-IN", "bho": "hi-IN", "mai": "hi-IN", "pa": "pa-IN", "en": "en-IN" };
-    const targetCode = langMap[langCode] || "hi-IN";
 
-    const voice = voices.find(v => 
-        v.lang.toLowerCase().includes(targetCode.toLowerCase()) || 
-        v.name.toLowerCase().includes(langCode)
-    );
-
-    if (voice) utterThis.voice = voice;
-    utterThis.lang = targetCode;
+    if (langCode === "en") {
+        // शुद्ध अंग्रेज़ी वॉयस इंजन ढूँढना (US, UK, या Indian English)
+        const enVoice = voices.find(v => 
+            v.lang.toLowerCase().includes("en-in") || 
+            v.lang.toLowerCase().includes("en-us") || 
+            v.lang.toLowerCase().includes("en-gb") || 
+            v.name.toLowerCase().includes("english")
+        );
+        if (enVoice) utterThis.voice = enVoice;
+        utterThis.lang = "en-US";
+    } else if (langCode === "pa") {
+        const paVoice = voices.find(v => v.lang.toLowerCase().includes("pa"));
+        if (paVoice) utterThis.voice = paVoice;
+        utterThis.lang = "pa-IN";
+    } else {
+        // हिंदी, भोजपुरी, मैथिली के लिए भारतीय हिंदी इंजन
+        const hiVoice = voices.find(v => 
+            v.lang.toLowerCase().includes("hi") || 
+            v.name.toLowerCase().includes("hindi") ||
+            v.name.toLowerCase().includes("swara")
+        );
+        if (hiVoice) utterThis.voice = hiVoice;
+        utterThis.lang = "hi-IN";
+    }
 
     utterThis.onend = () => { if (audioStatus) audioStatus.style.display = "none"; };
     utterThis.onerror = () => { if (audioStatus) audioStatus.style.display = "none"; };
@@ -528,9 +569,15 @@ function playBrowserTTS(text, langCode) {
     synth.speak(utterThis);
 }
 
+// इनिशियलाइजेशन
 document.addEventListener("DOMContentLoaded", () => {
     checkLocationSelection();
     listenToCloudData();
+
+    // वॉयस लिस्ट को बैकग्राउंड में प्री-लोड करना
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = () => synth.getVoices();
+    }
 
     const searchBar = document.querySelector(".search-bar");
     if (searchBar) {
