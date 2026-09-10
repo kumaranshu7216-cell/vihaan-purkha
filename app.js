@@ -17,24 +17,31 @@ let pannellumViewer = null;
 
 let leafletMap = null;
 let currentMarker = null;
+let transitionMap = null;
 
-// ज़िलों के अक्षांश-देशांतर (Latitude & Longitude)
+// राज्य और ज़िलों के सटीक निर्देशांक
+const stateCoords = {
+    "Bihar": [25.6, 85.5],
+    "Punjab": [31.1, 75.3],
+    "Uttar Pradesh": [26.8, 80.9]
+};
+
 const districtCoords = {
     "Muzaffarpur": [26.1209, 85.3647],
     "Patna": [25.5941, 85.1376],
     "Gaya": [24.7914, 85.0002],
+    "Vaishali": [25.9863, 85.1228],
     "Darbhanga": [26.1542, 85.8918],
     "Bhagalpur": [25.2425, 86.9842],
-    "Vaishali": [25.9928, 85.1264],
     "Amritsar": [31.6340, 74.8723],
     "Ludhiana": [30.9010, 75.8573],
     "Jalandhar": [31.3260, 75.5762],
     "Patiala": [30.3398, 76.3869],
-    "Ayodhya": [26.7922, 82.1998],
-    "Varanasi": [25.3176, 82.9739],
-    "Lucknow": [26.8467, 80.9462],
-    "Agra": [27.1767, 78.0081],
-    "Mathura": [27.4924, 77.6737]
+    "Ayodhya": [26.7956, 82.1943],
+    "Varanasi": [25.3109, 83.0107],
+    "Lucknow": [26.8690, 80.9126],
+    "Agra": [27.1751, 78.0421],
+    "Mathura": [27.5050, 77.6690]
 };
 
 const stateDistricts = {
@@ -46,51 +53,8 @@ const stateDistricts = {
 let selectedState = localStorage.getItem("vp_state") || "Bihar";
 let selectedDistrict = localStorage.getItem("vp_district") || "Muzaffarpur";
 
-// ================= 100% सटीक और कभी न ब्लॉक होने वाली CDN इमेजेस =================
+// ================= 100% प्रामाणिक व समृद्ध हेरिटेज डेटा =================
 const defaultPlaces = {
-    // 1. उत्तर प्रदेश - अयोध्या
-    "ram_mandir_ayodhya": {
-        name: "श्री राम जन्मभूमि मंदिर",
-        state: "Uttar Pradesh",
-        district: "Ayodhya",
-        village: "रामकोट, अयोध्या धाम",
-        lat: 26.7956,
-        lng: 82.1943,
-        category: "धार्मिक स्थल",
-        imageUrl: "https://images.unsplash.com/photo-1706185890886-07a82c448bb0?w=800&auto=format&fit=crop&q=80",
-        story: "मर्यादा पुरुषोत्तम भगवान श्री राम का यह भव्य जन्मभूमि मंदिर भारतीय आस्था और नागर स्थापत्य शैली का पावन प्रतीक है।",
-        adminId: "@spidey_ahamiyat",
-        xp: "100 XP"
-    },
-    // 2. उत्तर प्रदेश - वाराणसी
-    "kashi_vishwanath": {
-        name: "श्री काशी विश्वनाथ ज्योतिर्लिंग",
-        state: "Uttar Pradesh",
-        district: "Varanasi",
-        village: "विश्वनाथ गली",
-        lat: 25.3109,
-        lng: 83.0107,
-        category: "धार्मिक स्थल",
-        imageUrl: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&auto=format&fit=crop&q=80",
-        story: "द्वादश ज्योतिर्लिंगों में प्रमुख भगवान शिव की अविनाशी नगरी काशी का यह मंदिर मोक्ष और आध्यात्मिक ऊर्जा का केंद्र है।",
-        adminId: "@spidey_ahamiyat",
-        xp: "100 XP"
-    },
-    // 3. उत्तर प्रदेश - आगरा
-    "taj_mahal": {
-        name: "ताजमहल (Taj Mahal)",
-        state: "Uttar Pradesh",
-        district: "Agra",
-        village: "ताजगंज",
-        lat: 27.1751,
-        lng: 78.0421,
-        category: "ऐतिहासिक स्थल",
-        imageUrl: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&auto=format&fit=crop&q=80",
-        story: "सफेद संगमरमर से बना यह विश्व के सात अजूबों में शुमार यूनेस्को विश्व धरोहर स्थल है।",
-        adminId: "@spidey_ahamiyat",
-        xp: "100 XP"
-    },
-    // 4. बिहार - मुजफ्फरपुर
     "garibnath_mandir": {
         name: "बाबा गरीबनाथ मंदिर",
         state: "Bihar",
@@ -99,8 +63,8 @@ const defaultPlaces = {
         lat: 26.1215,
         lng: 85.3725,
         category: "धार्मिक स्थल",
-        imageUrl: "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&auto=format&fit=crop&q=80",
-        story: "बाबा गरीबनाथ मंदिर मुजफ्फरपुर का हृदय है, जिसे बिहार का देवघर भी कहा जाता है।",
+        imageUrl: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80",
+        story: "बाबा गरीबनाथ मंदिर मुजफ्फरपुर का प्रसिद्ध शिव धाम है, जिसे बिहार का देवघर भी कहा जाता है। सावन में यहाँ लाखों श्रद्धालु जलाभिषेक करते हैं।",
         adminId: "@spidey_ahamiyat",
         xp: "50 XP"
     },
@@ -117,7 +81,19 @@ const defaultPlaces = {
         adminId: "@spidey_ahamiyat",
         xp: "60 XP"
     },
-    // 5. बिहार - पटना
+    "ashoka_pillar_vaishali": {
+        name: "अशोक स्तंभ व बौद्ध स्तूप",
+        state: "Bihar",
+        district: "Vaishali",
+        village: "कोल्हुआ",
+        lat: 25.9863,
+        lng: 85.1228,
+        category: "ऐतिहासिक स्थल",
+        imageUrl: "https://images.unsplash.com/photo-1600100397608-f010e08e1e12?w=800&auto=format&fit=crop&q=80",
+        story: "सम्राट अशोक द्वारा बनवाया गया यह एकाश्म स्तंभ प्राचीन वैशाली के समृद्ध ऐतिहासिक और बौद्ध गौरव का प्रतीक है।",
+        adminId: "@spidey_ahamiyat",
+        xp: "80 XP"
+    },
     "golghar_patna": {
         name: "गोलघर (Golghar)",
         state: "Bihar",
@@ -127,11 +103,10 @@ const defaultPlaces = {
         lng: 85.1439,
         category: "ऐतिहासिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&auto=format&fit=crop&q=80",
-        story: "1786 में निर्मित गोलघर बिना किसी खंभे का एक विशाल ऐतिहासिक अन्न भंडार है।",
+        story: "1786 में कैप्टन जॉन गार्सटिन द्वारा निर्मित गोलघर बिना किसी खंभे का एक विशाल ऐतिहासिक अन्न भंडार है।",
         adminId: "@spidey_ahamiyat",
         xp: "50 XP"
     },
-    // 6. बिहार - बोधगया
     "mahabodhi_temple": {
         name: "महाबोधि मंदिर (बोधगया)",
         state: "Bihar",
@@ -141,11 +116,10 @@ const defaultPlaces = {
         lng: 84.9914,
         category: "धार्मिक स्थल",
         imageUrl: "https://images.unsplash.com/photo-1627894483216-2138af692e32?w=800&auto=format&fit=crop&q=80",
-        story: "यूनेस्को विश्व धरोहर स्थल, जहाँ भगवान बुद्ध को पवित्र बोधि वृक्ष के नीचे ज्ञान की प्राप्ति हुई थी।",
+        story: "यूनेस्को विश्व धरोहर स्थल, जहाँ भगवान बुद्ध को पवित्र बोधि वृक्ष के नीचे ज्ञान प्राप्त हुआ था।",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     },
-    // 7. पंजाब - अमृतसर
     "golden_temple": {
         name: "श्री हरिमंदिर साहिब (स्वर्ण मंदिर)",
         state: "Punjab",
@@ -158,12 +132,25 @@ const defaultPlaces = {
         story: "सिख धर्म का सर्वोच्च आध्यात्मिक केंद्र, जो पवित्र अमृत सरोवर और अखंड लंगर सेवा का प्रतीक है।",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
+    },
+    "ram_mandir_ayodhya": {
+        name: "श्री राम जन्मभूमि मंदिर",
+        state: "Uttar Pradesh",
+        district: "Ayodhya",
+        village: "रामकोट, अयोध्या धाम",
+        lat: 26.7956,
+        lng: 82.1943,
+        category: "धार्मिक स्थल",
+        imageUrl: "https://images.unsplash.com/photo-1706185890886-07a82c448bb0?w=800&auto=format&fit=crop&q=80",
+        story: "मर्यादा पुरुषोत्तम प्रभु श्री राम का यह भव्य जन्मभूमि मंदिर भारतीय आस्था और नागर स्थापत्य शैली का अनुपम प्रतीक है।",
+        adminId: "@spidey_ahamiyat",
+        xp: "100 XP"
     }
 };
 
 let cloudPlaces = {};
 
-// ================= लोकेशन पॉपअप प्रबंधन =================
+// ================= लोकेशन मॉडल =================
 function checkLocationSelection() {
     const modal = document.getElementById("locationModal");
     if (!localStorage.getItem("vp_state") || !localStorage.getItem("vp_district")) {
@@ -207,7 +194,8 @@ function onStateChange() {
     }
 }
 
-function confirmLocation() {
+// ================= 🗺️ सिनेमैटिक भारत ➔ राज्य ➔ ज़िला ज़ूम =================
+function startCinematicZoom() {
     const s = document.getElementById("stateSelect").value;
     const d = document.getElementById("districtSelect").value;
 
@@ -223,12 +211,43 @@ function confirmLocation() {
 
     document.getElementById("locationModal").style.display = "none";
 
-    const searchBar = document.querySelector(".search-bar");
-    if (searchBar) searchBar.value = "";
+    const zoomOverlay = document.getElementById("zoomTransitionOverlay");
+    const hudText = document.getElementById("zoomHudText");
+    zoomOverlay.style.display = "flex";
 
-    updateLocationHeader();
-    renderCards();
-    initOrUpdateMap();
+    const indiaCenter = [22.9734, 78.6569];
+    if (!transitionMap) {
+        transitionMap = L.map('transitionMapBox', { zoomControl: false }).setView(indiaCenter, 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(transitionMap);
+    } else {
+        transitionMap.invalidateSize();
+        transitionMap.setView(indiaCenter, 5);
+    }
+
+    hudText.innerHTML = `🇮🇳 भारत के मानचित्र पर ${s} खोज रहे हैं...`;
+
+    setTimeout(() => {
+        const sCoord = stateCoords[s] || indiaCenter;
+        hudText.innerHTML = `📍 ${s} राज्य पर ज़ूम कर रहे हैं...`;
+        transitionMap.flyTo(sCoord, 8, { duration: 1.6 });
+
+        setTimeout(() => {
+            const dCoord = districtCoords[d] || sCoord;
+            hudText.innerHTML = `🎯 ${d} ज़िले की धरोहरों पर पहुँच रहे हैं...`;
+            transitionMap.flyTo(dCoord, 14, { duration: 1.5 });
+
+            setTimeout(() => {
+                zoomOverlay.style.display = "none";
+                updateLocationHeader();
+                renderCards();
+                initOrUpdateMap();
+            }, 1800);
+
+        }, 1800);
+
+    }, 800);
 }
 
 function updateLocationHeader() {
@@ -247,12 +266,12 @@ function listenToCloudData() {
         });
         renderCards();
     }, (err) => {
-        console.warn("Using offline fallback:", err);
+        console.warn("Offline fallback active:", err);
         renderCards();
     });
 }
 
-// ================= कार्ड रेंडरिंग (क्लाउड प्राथमिकता के साथ) =================
+// ================= कार्ड रेंडरिंग (डिडुप्लीकेटेड) =================
 function renderCards() {
     const cardList = document.getElementById("dynamicCardList");
     if (!cardList) return;
@@ -261,64 +280,62 @@ function renderCards() {
     const searchText = searchInput ? searchInput.value.trim().toLowerCase() : "";
     const activeCategory = document.querySelector(".cat-btn.active")?.innerText || "सभी";
 
-    // 1. डेटा मर्ज करना: अगर क्लाउड में वही स्थान है, तो डिफ़ॉल्ट पूरी तरह ओवरराइट हो जाएगा
-    const finalData = { ...defaultPlaces };
-    for (const id in cloudPlaces) {
-        finalData[id] = cloudPlaces[id];
+    const mergedList = [];
+    const seenNames = new Set();
+
+    for (const key in cloudPlaces) {
+        const item = cloudPlaces[key];
+        if (item && item.name) {
+            mergedList.push({ id: key, ...item });
+            seenNames.add(item.name.trim().toLowerCase());
+        }
+    }
+
+    for (const key in defaultPlaces) {
+        const item = defaultPlaces[key];
+        if (item && item.name && !seenNames.has(item.name.trim().toLowerCase())) {
+            mergedList.push({ id: key, ...item });
+        }
     }
 
     cardList.innerHTML = "";
     let count = 0;
 
-    for (const key in finalData) {
-        const place = finalData[key];
-        if (!place || !place.name) continue;
-
+    for (const place of mergedList) {
         const pName = (place.name || "").toLowerCase();
-        const pState = (place.state || "").toLowerCase();
-        const pDistrict = (place.district || "").toLowerCase();
-        const pVillage = (place.village || "").toLowerCase();
+        const pState = (place.state || "").toLowerCase().trim();
+        const pDistrict = (place.district || "").toLowerCase().trim();
         const pCategory = (place.category || "").toLowerCase();
 
-        const curState = selectedState.toLowerCase();
-        const curDistrict = selectedDistrict.toLowerCase();
+        const curState = selectedState.toLowerCase().trim();
+        const curDistrict = selectedDistrict.toLowerCase().trim();
 
-        // अगर सर्च खाली है, तो केवल चुने गए ज़िले और राज्य का डेटा दिखेगा
         if (!searchText) {
-            const matchDistrict = (pDistrict === curDistrict) || 
-                                  (curDistrict.includes("ayod") && pDistrict.includes("ayod"));
-            const matchState = (pState === curState) || 
-                               (curState.includes("uttar") && pState.includes("uttar"));
-
-            if (!matchState || !matchDistrict) {
+            if (pState !== curState || pDistrict !== curDistrict) {
                 continue;
             }
         } else {
-            // सर्च करने पर सभी फ़ील्ड्स में मैचिंग
             const isMatch = pName.includes(searchText) || 
-                            pVillage.includes(searchText) || 
                             pDistrict.includes(searchText) || 
                             pState.includes(searchText) || 
                             pCategory.includes(searchText);
-
             if (!isMatch) continue;
         }
 
-        // श्रेणी फ़िल्टर
         if (activeCategory !== "सभी" && place.category !== activeCategory) {
             continue;
         }
 
         count++;
 
-        // इमेज और एडमिन नेम
-        const displayImage = place.imageUrl || "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&auto=format&fit=crop&q=80";
+        const fallbackImg = "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80";
+        const displayImage = (place.imageUrl && place.imageUrl.trim() !== "") ? place.imageUrl : fallbackImg;
         const locDisplay = place.village ? `${place.village}, ${place.district || selectedDistrict}` : `${place.district || selectedDistrict}, ${place.state || selectedState}`;
         const author = place.adminId || "@spidey_ahamiyat";
 
         const cardHTML = `
             <div class="card">
-                <div class="card-img-wrapper" onclick="open360View('${key}')">
+                <div class="card-img-wrapper" onclick="open360View('${place.id}')">
                     <img src="${displayImage}" alt="${place.name}" loading="lazy">
                     <div class="view-360-btn">🔄 360° दर्शन</div>
                     <div class="badge-overlay">🏆 ${place.xp || "50 XP"}</div>
@@ -326,10 +343,10 @@ function renderCards() {
                 </div>
                 <div class="card-content">
                     <h3>${place.name}</h3>
-                    <p class="tag">${place.category || 'धरोहर'} • <span style="color:#d35400; font-weight:600;">✍️ ${author}</span></p>
+                    <p class="tag">${place.category || 'धरोहर'} • <span style="color:#d35400; font-weight:700;">✍️ ${author}</span></p>
                     <div class="card-actions">
-                        <button class="ai-btn" onclick="startAIGuide('${key}')">🎧 AI गाइड सुनें</button>
-                        <button class="nav-btn" onclick="navigateToPlace('${key}')">📍 नेविगेट</button>
+                        <button class="ai-btn" onclick="startAIGuide('${place.id}')">🎧 AI गाइड सुनें</button>
+                        <button class="nav-btn" onclick="navigateToPlace('${place.id}')">📍 नेविगेट</button>
                     </div>
                 </div>
             </div>
@@ -340,14 +357,14 @@ function renderCards() {
     if (count === 0) {
         cardList.innerHTML = `
             <div style="text-align:center; padding: 45px 15px; color:#64748b;">
-                <p style="font-size: 1.15rem; font-weight:700; color:#1e293b;">🔍 कोई स्थल नहीं मिला</p>
-                <p style="font-size: 0.85rem; margin-top: 6px;">"${searchText ? searchText : selectedDistrict}" के लिए कोई डाटा नहीं है। ऊपर <b>'बदलें ✍️'</b> पर क्लिक करके कोई अन्य ज़िला चुनें।</p>
+                <p style="font-size: 1.15rem; font-weight:800; color:#0f172a;">🔍 कोई स्थल नहीं मिला</p>
+                <p style="font-size: 0.85rem; margin-top: 6px;">"${searchText ? searchText : selectedDistrict}" के लिए अभी डेटा मौजूद नहीं है। ऊपर <b>'बदलें ✍️'</b> पर क्लिक करके अन्य ज़िला चुनें।</p>
             </div>
         `;
     }
 }
 
-// ================= LEAFLET LIVE INTERACTIVE MAP =================
+// ================= लाइव मैप =================
 function initOrUpdateMap(targetLat = null, targetLng = null, placeTitle = null, placeSub = null) {
     const coords = (targetLat && targetLng) 
         ? [targetLat, targetLng] 
@@ -369,28 +386,23 @@ function initOrUpdateMap(targetLat = null, targetLng = null, placeTitle = null, 
 
     if (!leafletMap) {
         leafletMap = L.map('liveMapBox').setView(coords, 14);
-
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(leafletMap);
     } else {
         leafletMap.invalidateSize();
-        leafletMap.flyTo(coords, 14, { duration: 1.5 });
+        leafletMap.flyTo(coords, 14, { duration: 1.2 });
     }
 
-    if (currentMarker) {
-        leafletMap.removeLayer(currentMarker);
-    }
-
+    if (currentMarker) leafletMap.removeLayer(currentMarker);
     currentMarker = L.marker(coords).addTo(leafletMap)
         .bindPopup(`<b>${title}</b><br>${sub}`)
         .openPopup();
 }
 
 function navigateToPlace(placeId) {
-    const finalData = { ...defaultPlaces, ...cloudPlaces };
-    const place = finalData[placeId];
+    const place = cloudPlaces[placeId] || defaultPlaces[placeId];
     if (!place) return;
 
     showSection('map');
@@ -406,14 +418,12 @@ function navigateToPlace(placeId) {
 
 // 🔄 360° व्यू
 function open360View(placeId) {
-    const finalData = { ...defaultPlaces, ...cloudPlaces };
-    const place = finalData[placeId];
+    const place = cloudPlaces[placeId] || defaultPlaces[placeId];
     if (!place) return;
 
-    const imgUrl = place.imageUrl || "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&auto=format&fit=crop&q=80";
+    const imgUrl = place.imageUrl || "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80";
     document.getElementById("panoTitle").innerText = `${place.name} (360° व्यू)`;
     document.getElementById("panoModal").style.display = "flex";
-
     document.getElementById("panorama-container").innerHTML = "";
 
     try {
@@ -425,7 +435,7 @@ function open360View(placeId) {
             "compass": true
         });
     } catch (err) {
-        console.log("Pannellum note:", err);
+        console.log("Pannellum status:", err);
     }
 }
 
@@ -460,9 +470,7 @@ function showSection(sectionName) {
     } else if (sectionName === 'map') {
         map.style.display = "block";
         navMap?.classList.add("active-nav");
-        setTimeout(() => {
-            initOrUpdateMap();
-        }, 200);
+        setTimeout(() => initOrUpdateMap(), 200);
     } else if (sectionName === 'badges') {
         badges.style.display = "block";
         navBadges?.classList.add("active-nav");
@@ -471,8 +479,7 @@ function showSection(sectionName) {
 
 // भाषिणी AI आवाज़
 async function startAIGuide(placeId) {
-    const finalData = { ...defaultPlaces, ...cloudPlaces };
-    const place = finalData[placeId];
+    const place = cloudPlaces[placeId] || defaultPlaces[placeId];
     if (!place || !place.story) return;
 
     const selectedLang = document.getElementById("guideLanguage")?.value || "hi";
@@ -506,15 +513,9 @@ function playBrowserTTS(text, langCode) {
     utterThis.rate = 0.88;
 
     const voices = synth.getVoices();
-    const langMap = {
-        "hi": "hi-IN",
-        "bho": "hi-IN",
-        "mai": "hi-IN",
-        "pa": "pa-IN",
-        "en": "en-IN"
-    };
-
+    const langMap = { "hi": "hi-IN", "bho": "hi-IN", "mai": "hi-IN", "pa": "pa-IN", "en": "en-IN" };
     const targetCode = langMap[langCode] || "hi-IN";
+
     const voice = voices.find(v => 
         v.lang.toLowerCase().includes(targetCode.toLowerCase()) || 
         v.name.toLowerCase().includes(langCode)
@@ -530,16 +531,13 @@ function playBrowserTTS(text, langCode) {
     synth.speak(utterThis);
 }
 
-// इनिशियलाइजेशन
 document.addEventListener("DOMContentLoaded", () => {
     checkLocationSelection();
     listenToCloudData();
 
     const searchBar = document.querySelector(".search-bar");
     if (searchBar) {
-        searchBar.addEventListener("input", () => {
-            renderCards();
-        });
+        searchBar.addEventListener("input", () => renderCards());
     }
 
     const catBtns = document.querySelectorAll(".cat-btn");

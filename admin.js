@@ -12,7 +12,6 @@ const db = firebase.firestore();
 
 let base64Image = "";
 
-// फ़ोटो कंप्रेसर (क्लाउड लोड तेज़ करने के लिए)
 function previewImage(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -25,13 +24,13 @@ function previewImage(event) {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
 
-            const maxWidth = 600;
+            const maxWidth = 700;
             const scaleSize = maxWidth / img.width;
             canvas.width = maxWidth;
             canvas.height = img.height * scaleSize;
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            base64Image = canvas.toDataURL("image/jpeg", 0.7);
+            base64Image = canvas.toDataURL("image/jpeg", 0.75);
 
             const previewImg = document.getElementById("imgPreview");
             previewImg.src = base64Image;

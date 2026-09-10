@@ -6,7 +6,7 @@
     <title>विहान पुरखा - Vihaan Purkha</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Pannellum 360° Viewer CDN -->
+    <!-- Pannellum 360° Viewer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
@@ -26,16 +26,16 @@
             <div class="splash-logo">वि</div>
             <h1 class="typewriter-text" id="typewriter"></h1>
             <p class="splash-sub">आपन इतिहास, नई आवाज़</p>
-            <div class="bhashini-tag">🇮🇳 Powered by Bhashini AI (GoI)</div>
+            <div class="bhashini-tag">🇮🇳 Powered by Bhashini AI</div>
             <div class="splash-loader"></div>
         </div>
     </div>
 
-    <!-- राज्य और ज़िला चयन पॉपअप -->
+    <!-- लोकेशन सेलेक्शन पॉपअप -->
     <div id="locationModal" class="location-modal-overlay">
         <div class="location-modal-card">
-            <div class="loc-badge">📍</div>
-            <h3>अपनी धरोहर चुनें</h3>
+            <div class="loc-badge">🗺️</div>
+            <h3>धरोहर अन्वेषण</h3>
             <p class="loc-subtitle">अपनी स्थानीय संस्कृति से जुड़ने के लिए राज्य और ज़िला चुनें</p>
             
             <div class="form-group">
@@ -55,48 +55,45 @@
                 </select>
             </div>
 
-            <button class="loc-confirm-btn" onclick="confirmLocation()">धरोहर एक्सप्लोर करें ➔</button>
+            <button class="loc-confirm-btn" onclick="startCinematicZoom()">धरोहर एक्सप्लोर करें ➔</button>
         </div>
     </div>
 
-    <!-- मुख्य ऐप लेआउट -->
-    <div class="app-container">
-        <!-- हेडर व लोगो -->
-        <header class="header">
-            <div class="brand-row">
-                <div class="logo-badge" style="padding: 0; overflow: hidden; background: transparent; border-radius: 12px; width: 44px; height: 44px;">
-                    <svg viewBox="0 0 500 500" width="100%" height="100%">
-                        <defs>
-                            <linearGradient id="hdBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#1e293b"/>
-                                <stop offset="100%" stop-color="#0f172a"/>
-                            </linearGradient>
-                            <linearGradient id="hdRing" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#e67e22"/>
-                                <stop offset="100%" stop-color="#f39c12"/>
-                            </linearGradient>
-                        </defs>
-                        <rect width="500" height="500" rx="110" fill="url(#hdBg)"/>
-                        <circle cx="250" cy="250" r="170" fill="none" stroke="url(#hdRing)" stroke-width="14" stroke-dasharray="24 12"/>
-                        <circle cx="250" cy="250" r="130" fill="#d35400" opacity="0.25"/>
-                        <text x="250" y="295" font-family="sans-serif" font-size="160" font-weight="900" fill="#f39c12" text-anchor="middle">वि</text>
-                    </svg>
-                </div>
-                <div class="brand-text">
-                    <h2>विहान पुरखा</h2>
-                    <p>आपन इतिहास, नई आवाज़</p>
-                </div>
-            </div>
+    <!-- सिनेमैटिक मैप ज़ूम ट्रांज़िशन स्क्रीन -->
+    <div id="zoomTransitionOverlay" class="zoom-overlay" style="display: none;">
+        <div class="zoom-hud">
+            <h4 id="zoomHudText">भारत के मानचित्र पर खोज रहे हैं...</h4>
+            <div class="zoom-spinner"></div>
+        </div>
+        <div id="transitionMapBox"></div>
+    </div>
 
-            <!-- भाषिणी AI इंडिकेटर व लोकेशन बटन -->
-            <div class="current-location-chip" onclick="openLocationPicker()">
-                <span id="activeLocLabel">📍 मुजफ्फरपुर, Bihar</span>
-                <span class="edit-loc-icon">बदलें ✍️</span>
+    <!-- मुख्य ऐप लेआउट -->
+    <div class="app-container" id="mainAppContainer">
+        <!-- टॉप हेडर व ब्रांडिंग -->
+        <header class="header">
+            <div class="header-top">
+                <div class="brand-row">
+                    <div class="app-avatar">वि</div>
+                    <div class="brand-text">
+                        <h2>विहान पुरखा</h2>
+                        <p>आपन इतिहास, नई आवाज़</p>
+                    </div>
+                </div>
+
+                <!-- एक्टिव लोकेशन चिप -->
+                <div class="current-location-chip" onclick="openLocationPicker()">
+                    <span id="activeLocLabel">📍 मुजफ्फरपुर, Bihar</span>
+                    <span class="edit-loc-icon">बदलें ✍️</span>
+                </div>
             </div>
 
             <!-- सर्च बार और भाषा चयन -->
             <div class="header-controls">
-                <input type="text" class="search-bar" placeholder="धरोहर, स्थान या कस्बा खोजें...">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-bar" placeholder="धरोहर, स्थान या कस्बा खोजें...">
+                </div>
                 <select id="guideLanguage" class="lang-select">
                     <option value="hi">🇮🇳 हिंदी</option>
                     <option value="bho">🌾 भोजपुरी</option>
@@ -105,13 +102,9 @@
                     <option value="en">🌐 English</option>
                 </select>
             </div>
-            
-            <div class="bhashini-micro-chip">
-                <span>⚡ Bhashini AI Voice Engine Enabled</span>
-            </div>
         </header>
 
-        <!-- सेक्शन 1: होम -->
+        <!-- सेक्शन: होम -->
         <div id="homeSection">
             <div class="categories">
                 <button class="cat-btn active">सभी</button>
@@ -124,34 +117,34 @@
             <div class="card-list" id="dynamicCardList"></div>
         </div>
 
-        <!-- सेक्शन 2: इंटरैक्टिव लाइव मैप -->
+        <!-- सेक्शन: मैप -->
         <div id="mapSection" style="display: none; padding: 16px;">
             <div class="map-info-box">
                 <h3 id="mapTargetTitle">📍 हेरिटेज मैप</h3>
                 <p id="mapTargetSub">स्थान पर टैप करके लाइव डायरेक्शन देखें</p>
             </div>
             
-            <div id="liveMapBox" style="width: 100%; height: 380px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #cbd5e1; z-index: 10;"></div>
+            <div id="liveMapBox"></div>
 
             <div style="text-align: center; margin-top: 14px;">
                 <a id="externalNavBtn" href="#" target="_blank" class="nav-direction-link">🚗 Google Maps पर लाइव रास्ता देखें</a>
             </div>
         </div>
 
-        <!-- सेक्शन 3: बैजेज -->
+        <!-- सेक्शन: बैजेज -->
         <div id="badgesSection" style="display: none; padding: 20px;">
-            <h3 style="color: #d35400; margin-bottom: 15px; text-align:center;">आपके डिजिटल बैजेज (XP)</h3>
-            <div style="background: #fff3e0; border-left: 5px solid #d35400; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
-                <strong>🥇 मुजफ्फरपुर एक्सप्लोरर</strong>
-                <p style="font-size: 0.85em; color: #555; margin-top: 3px;">50 XP प्राप्त किया (बाबा गरीबनाथ दर्शन)</p>
+            <h3 style="color: #ffaa00; margin-bottom: 15px; text-align:center;">आपके डिजिटल बैजेज (XP)</h3>
+            <div class="badge-card xp-gold">
+                <strong style="color: #ffaa00;">🥇 हेरिटेज एक्सप्लोरर</strong>
+                <p style="color: var(--text-secondary); margin-top: 4px;">50 XP प्राप्त किया (स्थान दर्शन पूर्ण)</p>
             </div>
-            <div style="background: #e8f5e9; border-left: 5px solid #2e7d32; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
-                <strong>🎨 लोकल क्राफ्ट सपोर्टर</strong>
-                <p style="font-size: 0.85em; color: #555; margin-top: 3px;">100 XP प्राप्त किया (सुतापट्टी लहठी कला)</p>
+            <div class="badge-card xp-green">
+                <strong style="color: #4caf50;">🎨 लोकल क्राफ्ट सपोर्टर</strong>
+                <p style="color: var(--text-secondary); margin-top: 4px;">100 XP प्राप्त किया (स्थानीय कला व संस्कृति)</p>
             </div>
         </div>
 
-        <!-- 360° पैनोरमा मॉडल -->
+        <!-- 360° पैनोरमा पॉपअप -->
         <div id="panoModal" class="pano-modal">
             <div class="pano-modal-content">
                 <div class="pano-header">
@@ -166,11 +159,20 @@
         <!-- AI ऑडियो स्टेटस -->
         <div id="audioStatus">🔊 भाषिणी AI ऑडियो चल रहा है...</div>
 
-        <!-- बॉटम नेविगेशन बार -->
+        <!-- बॉटम फ्लोटिंग नेविगेशन -->
         <nav class="bottom-nav">
-            <button class="nav-item active-nav" id="navHome">🏠 <span>होम</span></button>
-            <button class="nav-item" id="navMap">🗺️ <span>मैप</span></button>
-            <button class="nav-item" id="navBadges">🏆 <span>बैजेज</span></button>
+            <button class="nav-item active-nav" id="navHome">
+                <span class="nav-icon">🏛️</span>
+                <span>होम</span>
+            </button>
+            <button class="nav-item" id="navMap">
+                <span class="nav-icon">🗺️</span>
+                <span>मैप</span>
+            </button>
+            <button class="nav-item" id="navBadges">
+                <span class="nav-icon">🏆</span>
+                <span>बैजेज</span>
+            </button>
         </nav>
     </div>
 
