@@ -12,6 +12,7 @@ const db = firebase.firestore();
 
 let base64Image = "";
 
+// फ़ोटो कंप्रेसर (क्लाउड लोड तेज़ करने के लिए)
 function previewImage(event) {
     const file = event.target.files[0];
     if (!file) return;

@@ -17,15 +17,8 @@ let pannellumViewer = null;
 
 let leafletMap = null;
 let currentMarker = null;
-let transitionMap = null;
 
-// राज्य और ज़िलों के सटीक निर्देशांक
-const stateCoords = {
-    "Bihar": [25.6, 85.5],
-    "Punjab": [31.1, 75.3],
-    "Uttar Pradesh": [26.8, 80.9]
-};
-
+// ज़िलों के सटीक निर्देशांक (Latitude & Longitude)
 const districtCoords = {
     "Muzaffarpur": [26.1209, 85.3647],
     "Patna": [25.5941, 85.1376],
@@ -53,8 +46,9 @@ const stateDistricts = {
 let selectedState = localStorage.getItem("vp_state") || "Bihar";
 let selectedDistrict = localStorage.getItem("vp_district") || "Muzaffarpur";
 
-// ================= 100% प्रामाणिक व समृद्ध हेरिटेज डेटा =================
+// 100% सुपर-फास्ट और सुरक्षित CDN इमेज लिंक्स
 const defaultPlaces = {
+    // बिहार
     "garibnath_mandir": {
         name: "बाबा गरीबनाथ मंदिर",
         state: "Bihar",
@@ -120,6 +114,8 @@ const defaultPlaces = {
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     },
+
+    // पंजाब
     "golden_temple": {
         name: "श्री हरिमंदिर साहिब (स्वर्ण मंदिर)",
         state: "Punjab",
@@ -133,6 +129,8 @@ const defaultPlaces = {
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
     },
+
+    // उत्तर प्रदेश
     "ram_mandir_ayodhya": {
         name: "श्री राम जन्मभूमि मंदिर",
         state: "Uttar Pradesh",
@@ -145,12 +143,24 @@ const defaultPlaces = {
         story: "मर्यादा पुरुषोत्तम प्रभु श्री राम का यह भव्य जन्मभूमि मंदिर भारतीय आस्था और नागर स्थापत्य शैली का अनुपम प्रतीक है।",
         adminId: "@spidey_ahamiyat",
         xp: "100 XP"
+    },
+    "kashi_vishwanath": {
+        name: "श्री काशी विश्वनाथ ज्योतिर्लिंग",
+        state: "Uttar Pradesh",
+        district: "Varanasi",
+        village: "विश्वनाथ गली",
+        lat: 25.3109,
+        lng: 83.0107,
+        category: "धार्मिक स्थल",
+        imageUrl: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=800&auto=format&fit=crop&q=80",
+        story: "द्वादश ज्योतिर्लिंगों में प्रमुख भगवान शिव की अविनाशी नगरी काशी का यह मंदिर मोक्ष और आध्यात्मिक ऊर्जा का केंद्र है।",
+        adminId: "@spidey_ahamiyat",
+        xp: "100 XP"
     }
 };
 
 let cloudPlaces = {};
 
-// ================= लोकेशन मॉडल =================
 function checkLocationSelection() {
     const modal = document.getElementById("locationModal");
     if (!localStorage.getItem("vp_state") || !localStorage.getItem("vp_district")) {
@@ -194,8 +204,7 @@ function onStateChange() {
     }
 }
 
-// ================= 🗺️ सिनेमैटिक भारत ➔ राज्य ➔ ज़िला ज़ूम =================
-function startCinematicZoom() {
+function confirmLocation() {
     const s = document.getElementById("stateSelect").value;
     const d = document.getElementById("districtSelect").value;
 
@@ -211,43 +220,12 @@ function startCinematicZoom() {
 
     document.getElementById("locationModal").style.display = "none";
 
-    const zoomOverlay = document.getElementById("zoomTransitionOverlay");
-    const hudText = document.getElementById("zoomHudText");
-    zoomOverlay.style.display = "flex";
+    const searchBar = document.querySelector(".search-bar");
+    if (searchBar) searchBar.value = "";
 
-    const indiaCenter = [22.9734, 78.6569];
-    if (!transitionMap) {
-        transitionMap = L.map('transitionMapBox', { zoomControl: false }).setView(indiaCenter, 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19
-        }).addTo(transitionMap);
-    } else {
-        transitionMap.invalidateSize();
-        transitionMap.setView(indiaCenter, 5);
-    }
-
-    hudText.innerHTML = `🇮🇳 भारत के मानचित्र पर ${s} खोज रहे हैं...`;
-
-    setTimeout(() => {
-        const sCoord = stateCoords[s] || indiaCenter;
-        hudText.innerHTML = `📍 ${s} राज्य पर ज़ूम कर रहे हैं...`;
-        transitionMap.flyTo(sCoord, 8, { duration: 1.6 });
-
-        setTimeout(() => {
-            const dCoord = districtCoords[d] || sCoord;
-            hudText.innerHTML = `🎯 ${d} ज़िले की धरोहरों पर पहुँच रहे हैं...`;
-            transitionMap.flyTo(dCoord, 14, { duration: 1.5 });
-
-            setTimeout(() => {
-                zoomOverlay.style.display = "none";
-                updateLocationHeader();
-                renderCards();
-                initOrUpdateMap();
-            }, 1800);
-
-        }, 1800);
-
-    }, 800);
+    updateLocationHeader();
+    renderCards();
+    initOrUpdateMap();
 }
 
 function updateLocationHeader() {
@@ -271,7 +249,15 @@ function listenToCloudData() {
     });
 }
 
-// ================= कार्ड रेंडरिंग (डिडुप्लीकेटेड) =================
+// नाम को सामान्य (Normalize) करने का फंक्शन
+function normalizeName(str) {
+    if (!str) return "";
+    return str.toLowerCase()
+        .replace(/[\s\(\)\-_\.,\/]/g, "")
+        .replace(/mandir|temple|smarak|memorial/g, "");
+}
+
+// ================= कार्ड रेंडरिंग (सख्त नेम-मैचिंग डिडुप्लिकेशन) =================
 function renderCards() {
     const cardList = document.getElementById("dynamicCardList");
     if (!cardList) return;
@@ -281,20 +267,26 @@ function renderCards() {
     const activeCategory = document.querySelector(".cat-btn.active")?.innerText || "सभी";
 
     const mergedList = [];
-    const seenNames = new Set();
+    const seenNormalizedNames = new Set();
 
+    // 1. सबसे पहले क्लाउड से आया डेटा जोड़ें (Admin Data First)
     for (const key in cloudPlaces) {
         const item = cloudPlaces[key];
         if (item && item.name) {
             mergedList.push({ id: key, ...item });
-            seenNames.add(item.name.trim().toLowerCase());
+            seenNormalizedNames.add(normalizeName(item.name));
         }
     }
 
+    // 2. डिफ़ॉल्ट डेटा तभी जोड़ें जब वैसा कोई नाम क्लाउड में न हो
     for (const key in defaultPlaces) {
         const item = defaultPlaces[key];
-        if (item && item.name && !seenNames.has(item.name.trim().toLowerCase())) {
-            mergedList.push({ id: key, ...item });
+        if (item && item.name) {
+            const norm = normalizeName(item.name);
+            // अगर एडमिन ने यह नाम पहले ही जोड़ दिया है, तो डिफ़ॉल्ट कार्ड छोड़ दें
+            if (!seenNormalizedNames.has(norm)) {
+                mergedList.push({ id: key, ...item });
+            }
         }
     }
 
@@ -310,6 +302,7 @@ function renderCards() {
         const curState = selectedState.toLowerCase().trim();
         const curDistrict = selectedDistrict.toLowerCase().trim();
 
+        // लोकेशन फ़िल्टर
         if (!searchText) {
             if (pState !== curState || pDistrict !== curDistrict) {
                 continue;
@@ -322,12 +315,14 @@ function renderCards() {
             if (!isMatch) continue;
         }
 
+        // श्रेणी फ़िल्टर
         if (activeCategory !== "सभी" && place.category !== activeCategory) {
             continue;
         }
 
         count++;
 
+        // इमेज वैलिडेशन (अगर इमेज नहीं है या लोड नहीं हुई तो सेफ इमेज)
         const fallbackImg = "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80";
         const displayImage = (place.imageUrl && place.imageUrl.trim() !== "") ? place.imageUrl : fallbackImg;
         const locDisplay = place.village ? `${place.village}, ${place.district || selectedDistrict}` : `${place.district || selectedDistrict}, ${place.state || selectedState}`;
@@ -336,7 +331,7 @@ function renderCards() {
         const cardHTML = `
             <div class="card">
                 <div class="card-img-wrapper" onclick="open360View('${place.id}')">
-                    <img src="${displayImage}" alt="${place.name}" loading="lazy">
+                    <img src="${displayImage}" alt="${place.name}" loading="lazy" onerror="this.onerror=null; this.src='${fallbackImg}';">
                     <div class="view-360-btn">🔄 360° दर्शन</div>
                     <div class="badge-overlay">🏆 ${place.xp || "50 XP"}</div>
                     <div class="location-chip">📍 ${locDisplay}</div>
@@ -358,7 +353,7 @@ function renderCards() {
         cardList.innerHTML = `
             <div style="text-align:center; padding: 45px 15px; color:#64748b;">
                 <p style="font-size: 1.15rem; font-weight:800; color:#0f172a;">🔍 कोई स्थल नहीं मिला</p>
-                <p style="font-size: 0.85rem; margin-top: 6px;">"${searchText ? searchText : selectedDistrict}" के लिए अभी डेटा मौजूद नहीं है। ऊपर <b>'बदलें ✍️'</b> पर क्लिक करके अन्य ज़िला चुनें।</p>
+                <p style="font-size: 0.85rem; margin-top: 6px;">"${searchText ? searchText : selectedDistrict}" के लिए अभी डेटा मौजूद नहीं है। ऊपर <b>'बदलें ✍️'</b> पर क्लिक करके अन्य ज़िला चुनें या एडमिन से जोड़ें।</p>
             </div>
         `;
     }
@@ -421,8 +416,10 @@ function open360View(placeId) {
     const place = cloudPlaces[placeId] || defaultPlaces[placeId];
     if (!place) return;
 
-    const imgUrl = place.imageUrl || "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80";
-    document.getElementById("panoTitle").innerText = `${place.name} (360° व्यू)`;
+    const fallbackImg = "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80";
+    const imgUrl = (place.imageUrl && place.imageUrl.trim() !== "") ? place.imageUrl : fallbackImg;
+    
+    document.getElementById("panoTitle").innerText = `${place.name} (360° दर्शन)`;
     document.getElementById("panoModal").style.display = "flex";
     document.getElementById("panorama-container").innerHTML = "";
 
@@ -477,7 +474,7 @@ function showSection(sectionName) {
     }
 }
 
-// भाषिणी AI आवाज़
+// भाषिणी AI वॉइस गाइड
 async function startAIGuide(placeId) {
     const place = cloudPlaces[placeId] || defaultPlaces[placeId];
     if (!place || !place.story) return;

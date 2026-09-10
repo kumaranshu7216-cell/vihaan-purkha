@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- इमेज ब्लॉकिंग (403 Forbidden) को रोकने के लिए no-referrer पॉलिसी -->
+    <meta name="referrer" content="no-referrer">
     <title>विहान पुरखा - Vihaan Purkha</title>
     <link rel="stylesheet" href="style.css">
     
@@ -26,7 +28,7 @@
             <div class="splash-logo">वि</div>
             <h1 class="typewriter-text" id="typewriter"></h1>
             <p class="splash-sub">आपन इतिहास, नई आवाज़</p>
-            <div class="bhashini-tag">🇮🇳 Powered by Bhashini AI</div>
+            <div class="bhashini-tag">🇮🇳 Powered by Digital India Bhashini</div>
             <div class="splash-loader"></div>
         </div>
     </div>
@@ -55,22 +57,13 @@
                 </select>
             </div>
 
-            <button class="loc-confirm-btn" onclick="startCinematicZoom()">धरोहर एक्सप्लोर करें ➔</button>
+            <button class="loc-confirm-btn" onclick="confirmLocation()">धरोहर एक्सप्लोर करें ➔</button>
         </div>
-    </div>
-
-    <!-- सिनेमैटिक मैप ज़ूम ट्रांज़िशन स्क्रीन -->
-    <div id="zoomTransitionOverlay" class="zoom-overlay" style="display: none;">
-        <div class="zoom-hud">
-            <h4 id="zoomHudText">भारत के मानचित्र पर खोज रहे हैं...</h4>
-            <div class="zoom-spinner"></div>
-        </div>
-        <div id="transitionMapBox"></div>
     </div>
 
     <!-- मुख्य ऐप लेआउट -->
     <div class="app-container" id="mainAppContainer">
-        <!-- टॉप हेडर व ब्रांडिंग -->
+        <!-- टॉप हेडर -->
         <header class="header">
             <div class="header-top">
                 <div class="brand-row">
@@ -101,6 +94,10 @@
                     <option value="pa">👳 पंजाबी</option>
                     <option value="en">🌐 English</option>
                 </select>
+            </div>
+            
+            <div class="bhashini-chip">
+                <span>⚡ भाषिणी बहुभाषी AI सक्रिय</span>
             </div>
         </header>
 
@@ -133,14 +130,14 @@
 
         <!-- सेक्शन: बैजेज -->
         <div id="badgesSection" style="display: none; padding: 20px;">
-            <h3 style="color: #ffaa00; margin-bottom: 15px; text-align:center;">आपके डिजिटल बैजेज (XP)</h3>
+            <h3 style="color: #d35400; margin-bottom: 16px; text-align:center; font-weight:800;">आपके डिजिटल बैजेज (XP)</h3>
             <div class="badge-card xp-gold">
-                <strong style="color: #ffaa00;">🥇 हेरिटेज एक्सप्लोरर</strong>
-                <p style="color: var(--text-secondary); margin-top: 4px;">50 XP प्राप्त किया (स्थान दर्शन पूर्ण)</p>
+                <strong>🥇 हेरिटेज एक्सप्लोरर</strong>
+                <p>50 XP प्राप्त किया (स्थान दर्शन पूर्ण)</p>
             </div>
             <div class="badge-card xp-green">
-                <strong style="color: #4caf50;">🎨 लोकल क्राफ्ट सपोर्टर</strong>
-                <p style="color: var(--text-secondary); margin-top: 4px;">100 XP प्राप्त किया (स्थानीय कला व संस्कृति)</p>
+                <strong>🎨 लोकल क्राफ्ट सपोर्टर</strong>
+                <p>100 XP प्राप्त किया (स्थानीय कला व संस्कृति समर्थन)</p>
             </div>
         </div>
 
@@ -148,18 +145,18 @@
         <div id="panoModal" class="pano-modal">
             <div class="pano-modal-content">
                 <div class="pano-header">
-                    <span id="panoTitle">360° व्यू</span>
+                    <span id="panoTitle">360° दर्शन</span>
                     <button class="close-pano" onclick="close360View()">✕</button>
                 </div>
                 <div id="panorama-container"></div>
-                <p class="pano-hint">👆 स्क्रीन को उंगली या माउस से चारों तरफ घुमाकर 360° में देखें</p>
+                <p class="pano-hint">👆 स्क्रीन को चारों तरफ घुमाकर 360° में देखें</p>
             </div>
         </div>
 
         <!-- AI ऑडियो स्टेटस -->
-        <div id="audioStatus">🔊 भाषिणी AI ऑडियो चल रहा है...</div>
+        <div id="audioStatus">🔊 भाषिणी AI गाइड बोल रहा है...</div>
 
-        <!-- बॉटम फ्लोटिंग नेविगेशन -->
+        <!-- बॉटम नेविगेशन -->
         <nav class="bottom-nav">
             <button class="nav-item active-nav" id="navHome">
                 <span class="nav-icon">🏛️</span>
@@ -176,7 +173,6 @@
         </nav>
     </div>
 
-    <!-- टाइपराइटर स्क्रिप्ट -->
     <script>
         const welcomeText = "विहान पुरखा";
         let charIndex = 0;
@@ -198,7 +194,7 @@
                     splash.classList.add("splash-fade-out");
                     setTimeout(() => splash.style.display = "none", 500);
                 }
-            }, 1900);
+            }, 1800);
         });
     </script>
 
