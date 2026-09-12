@@ -1,91 +1,143 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyA0bnCrIDTPracgy-qFvfXlXu7Im5RNGj0",
-    authDomain: "vihaan-purkha.firebaseapp.com",
-    projectId: "vihaan-purkha",
-    storageBucket: "vihaan-purkha.firebasestorage.app",
-    messagingSenderId: "1033538607939",
-    appId: "1:1033538607939:web:b341070cc12e6708716df6"
-};
+/**
+ * VratyaVani AI (व्रात्यवाणी) — Admin Desk Controller
+ */
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const STORAGE_KEY = "vratyavani_custom_records";
 
-let base64Image = "";
+document.addEventListener("DOMContentLoaded", () => {
+  renderAdminTable();
+  bindAdminForm();
+});
 
-// फ़ोटो कंप्रेसर (क्लाउड लोड तेज़ करने के लिए)
-function previewImage(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-
-            const maxWidth = 700;
-            const scaleSize = maxWidth / img.width;
-            canvas.width = maxWidth;
-            canvas.height = img.height * scaleSize;
-
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            base64Image = canvas.toDataURL("image/jpeg", 0.75);
-
-            const previewImg = document.getElementById("imgPreview");
-            previewImg.src = base64Image;
-            previewImg.style.display = "block";
-            document.getElementById("previewPlaceholder").style.display = "none";
-        };
-    };
-    reader.readAsDataURL(file);
+function getCustomRecords() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    console.error("Storage read error:", err);
+    return [];
+  }
 }
 
-function saveData() {
-    const adminId = document.getElementById("adminId").value.trim();
-    const placeId = document.getElementById("placeId").value.trim();
-    const name = document.getElementById("placeName").value.trim();
-    const state = document.getElementById("placeState").value;
-    const district = document.getElementById("placeDistrict").value;
-    const village = document.getElementById("placeVillage").value.trim();
-    const category = document.getElementById("placeCategory").value;
-    const story = document.getElementById("placeStory").value.trim();
+function saveCustomRecords(records) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
 
-    if (!adminId || !placeId || !name || !story) {
-        alert("कृपया सभी आवश्यक फ़ील्ड्स भरें!");
-        return;
+function renderAdminTable() {
+  const tbody = document.getElementById("recordsTbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  // 1. Load baseline records from data.js
+  let allRecords = [];
+  if (typeof heritageData !== "undefined") {
+    Object.keys(heritageData).forEach((districtKey) => {
+      heritageData[districtKey].forEach((item) => {
+        allRecords.push({
+          ...item,
+          districtDisplay: item.districtName || districtKey,
+          source: "Core Dataset (data.js)"
+        });
+      });
+    });
+  }
+
+  // 2. Load LocalStorage custom records
+  const customRecords = getCustomRecords();
+  allRecords = [...customRecords, ...allRecords];
+
+  if (allRecords.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">कोई हेरिटेज रिकॉर्ड उपलब्ध नहीं है।</td></tr>`;
+    return;
+  }
+
+  allRecords.forEach((item, index) => {
+    const isCustom = item.source === "User Verified (Custom)";
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td><strong>${item.title}</strong></td>
+      <td>${item.districtDisplay || item.district}</td>
+      <td>
+        <span class="badge-category ${item.category}">
+          ${getCategoryLabel(item.category)}
+        </span>
+      </td>
+      <td>
+        <span class="badge-status">✓ ${item.source}</span>
+      </td>
+      <td>
+        ${
+          isCustom
+            ? `<button onclick="deleteCustomRecord(${index})" class="btn-delete">🗑️ हटाएं</button>`
+            : `<span style="color:#94a3b8; font-size:11px;">सुरक्षित (Core)</span>`
+        }
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function getCategoryLabel(cat) {
+  const labels = {
+    major: "प्रमुख धरोहर",
+    monument: "स्मारक",
+    gem: "छिपा रत्न",
+    artisan: "शिल्पकार"
+  };
+  return labels[cat] || cat;
+}
+
+function bindAdminForm() {
+  const form = document.getElementById("addRecordForm");
+  if (!form) return;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const category = document.getElementById("recCat").value;
+    const district = document.getElementById("recDistrict").value;
+    const title = document.getElementById("recTitle").value.trim();
+    const coordsRaw = document.getElementById("recCoords").value.trim();
+    const desc = document.getElementById("recDesc").value.trim();
+    const phone = document.getElementById("recPhone") ? document.getElementById("recPhone").value.trim() : "";
+
+    let coords = [26.1209, 85.3647];
+    if (coordsRaw.includes(",")) {
+      const parts = coordsRaw.split(",");
+      coords = [parseFloat(parts[0].trim()), parseFloat(parts[1].trim())];
     }
 
-    const dataObj = {
-        adminId: adminId,
-        name: name,
-        state: state,
-        district: district,
-        village: village,
-        imageUrl: base64Image || "",
-        category: category,
-        story: story,
-        xp: "50 XP",
-        createdAt: new Date()
+    const newRecord = {
+      id: `vv_${Date.now()}`,
+      category: category,
+      district: district,
+      districtDisplay: district,
+      title: title,
+      desc: desc,
+      coords: coords,
+      image: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=400&q=80",
+      bhashiniAudioText: desc,
+      artisanPhone: phone || null,
+      source: "User Verified (Custom)"
     };
 
-    db.collection("places").doc(placeId).set(dataObj)
-        .then(() => {
-            const msgBox = document.getElementById("msg");
-            msgBox.style.display = "block";
-            setTimeout(() => { msgBox.style.display = "none"; }, 2500);
+    const customRecords = getCustomRecords();
+    customRecords.unshift(newRecord);
+    saveCustomRecords(customRecords);
 
-            document.getElementById("placeId").value = "";
-            document.getElementById("placeName").value = "";
-            document.getElementById("placeVillage").value = "";
-            document.getElementById("placeStory").value = "";
-            document.getElementById("imgPreview").style.display = "none";
-            document.getElementById("previewPlaceholder").style.display = "block";
-            document.getElementById("imageInput").value = "";
-            base64Image = "";
-        })
-        .catch((error) => {
-            alert("डेटाबेस एरर: " + error.message);
-        });
+    alert(`🎉 VratyaVani AI: "${title}" को सत्यापित कर लाइव कर दिया गया है!`);
+    form.reset();
+    renderAdminTable();
+  });
+}
+
+function deleteCustomRecord(recordIndex) {
+  if (!confirm("क्या आप वाकई इस रिकॉर्ड को हटाना चाहते हैं?")) return;
+
+  let customRecords = getCustomRecords();
+  customRecords.splice(recordIndex, 1);
+  saveCustomRecords(customRecords);
+  renderAdminTable();
 }

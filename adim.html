@@ -1,193 +1,176 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>विहान पुरखा - एडमिन कंसोल</title>
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f1f5f9; 
-            padding: 16px; 
-            margin: 0; 
-            display: flex;
-            justify-content: center;
-        }
-        .admin-card { 
-            background: #ffffff; 
-            width: 100%;
-            max-width: 440px; 
-            padding: 26px 20px; 
-            border-radius: 24px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            border: 1px solid #e2e8f0;
-            color: #0f172a;
-        }
-        .logo-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 22px;
-        }
-        .logo-icon {
-            width: 46px;
-            height: 46px;
-            background: linear-gradient(135deg, #d35400, #f39c12);
-            color: white;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            font-weight: 900;
-            box-shadow: 0 4px 12px rgba(211, 84, 0, 0.3);
-        }
-        h2 { 
-            margin: 0; 
-            font-size: 1.4rem; 
-            font-weight: 800; 
-            background: linear-gradient(90deg, #d35400, #f39c12);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .sub { font-size: 0.8rem; color: #64748b; margin: 0; }
-        
-        label { font-size: 12px; font-weight: 700; color: #334155; display: block; margin-top: 14px; margin-bottom: 5px; }
-        input, select, textarea { 
-            width: 100%; 
-            padding: 11px 13px; 
-            border: 1.5px solid #cbd5e1; 
-            border-radius: 12px; 
-            box-sizing: border-box; 
-            font-size: 13px; 
-            outline: none; 
-            background: #f8fafc;
-            color: #0f172a;
-        }
-        input:focus, textarea:focus, select:focus { border-color: #d35400; background: #fff; }
-        .row-grid { display: flex; gap: 8px; }
-        .row-grid div { flex: 1; }
-        
-        .upload-preview {
-            width: 100%;
-            height: 140px;
-            border: 2px dashed #cbd5e1;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 6px;
-            overflow: hidden;
-            background: #f8fafc;
-        }
-        .upload-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        
-        button { 
-            width: 100%; 
-            padding: 14px; 
-            margin-top: 22px; 
-            background: linear-gradient(135deg, #d35400, #f39c12); 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            font-weight: 800; 
-            font-size: 15px; 
-            box-shadow: 0 4px 14px rgba(211, 84, 0, 0.3); 
-        }
-        #msg { color: #16a34a; text-align: center; display: none; margin-top: 14px; font-weight: 800; font-size: 13px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Hub | VratyaVani AI Verification Desk</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .admin-container {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 28px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+      border: 1px solid var(--border-color);
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 18px;
+    }
+    .admin-header h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 24px;
+      color: var(--primary-deep);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 13px; font-weight: 600; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .btn-submit {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: var(--primary-deep);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #2e287a; }
+    .records-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      font-size: 13px;
+    }
+    .records-table th, .records-table td {
+      border: 1px solid var(--border-color);
+      padding: 12px 14px;
+      text-align: left;
+    }
+    .records-table th {
+      background: #f8fafc;
+      font-weight: 700;
+    }
+    .badge-category {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-category.major { background: #e0e7ff; color: #3730a3; }
+    .badge-category.monument { background: #fef3c7; color: #92400e; }
+    .badge-category.gem { background: #e0f2fe; color: #0369a1; }
+    .badge-category.artisan { background: #dcfce7; color: #166534; }
+    .badge-status { color: #15803d; font-weight: 700; font-size: 12px; }
+    .btn-delete {
+      background: #fee2e2;
+      color: #991b1b;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+    }
+  </style>
 </head>
-<body>
-    <div class="admin-card">
-        <div class="logo-box">
-            <div class="logo-icon">वि</div>
-            <div>
-                <h2>विहान पुरखा</h2>
-                <p class="sub">मोबाइल एडमिन कंसोल</p>
-            </div>
-        </div>
+<body style="background: #f1f5f9;">
 
-        <label>एडमिन हैंडल</label>
-        <input type="text" id="adminId" value="@spidey_ahamiyat" required>
-
-        <label>स्थान ID (Unique ID बिना स्पेस के, जैसे: garibnath_mandir)</label>
-        <input type="text" id="placeId" placeholder="garibnath_mandir" required>
-
-        <label>स्थान का नाम</label>
-        <input type="text" id="placeName" placeholder="बाबा गरीबनाथ मंदिर" required>
-
-        <div class="row-grid">
-            <div>
-                <label>राज्य (State)</label>
-                <select id="placeState" onchange="updateDistrictOptions()">
-                    <option value="Bihar">Bihar</option>
-                    <option value="Punjab">Punjab</option>
-                    <option value="Uttar Pradesh">Uttar Pradesh</option>
-                </select>
-            </div>
-            <div>
-                <label>ज़िला (District)</label>
-                <select id="placeDistrict">
-                    <option value="Muzaffarpur">Muzaffarpur</option>
-                    <option value="Patna">Patna</option>
-                    <option value="Gaya">Gaya</option>
-                    <option value="Vaishali">Vaishali</option>
-                    <option value="Darbhanga">Darbhanga</option>
-                    <option value="Bhagalpur">Bhagalpur</option>
-                </select>
-            </div>
-        </div>
-
-        <label>गाँव / कस्बा / इलाका</label>
-        <input type="text" id="placeVillage" placeholder="पुरानी बाज़ार" required>
-
-        <label>स्थान की असली फ़ोटो अपलोड करें</label>
-        <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
-        <div class="upload-preview" id="previewContainer">
-            <span id="previewPlaceholder" style="color: #94a3b8; font-size: 12px;">फ़ोटो चुनें</span>
-            <img id="imgPreview" alt="Preview">
-        </div>
-
-        <label>श्रेणी (Category)</label>
-        <select id="placeCategory">
-            <option value="धार्मिक स्थल">धार्मिक स्थल</option>
-            <option value="ऐतिहासिक स्थल">ऐतिहासिक स्थल</option>
-            <option value="लोकल इकॉनमी">लोकल इकॉनमी</option>
-            <option value="हैंडीक्राफ्ट">हैंडीक्राफ्ट</option>
-        </select>
-
-        <label>स्थान की कहानी (AI गाइड यही बोलेगा)</label>
-        <textarea id="placeStory" rows="4" placeholder="विस्तृत इतिहास और विशेषता लिखें..." required></textarea>
-
-        <button onclick="saveData()">क्लाउड पर सुरक्षित करें</button>
-        <p id="msg">✅ स्थल सीधे क्लाउड डेटाबेस में सुरक्षित हो गया!</p>
+  <div class="admin-container">
+    <div class="admin-header">
+      <div>
+        <h2>🏛️ VratyaVani Verification & Curation Desk</h2>
+        <p style="margin-top: 4px; font-size: 13px; color: var(--text-muted);">
+          डिस्ट्रिक्ट हेरिटेज हब, अनडिस्कवर्ड रत्न व वोकल फॉर लोकल कारीगर डेटा प्रबंधन
+        </p>
+      </div>
+      <a href="index.html" class="tab-btn" style="text-decoration:none; display:inline-block;">← मुख्य पोर्टल</a>
     </div>
 
-    <script src="admin.js"></script>
-    <script>
-        const adminDistricts = {
-            "Bihar": ["Muzaffarpur", "Patna", "Gaya", "Vaishali", "Darbhanga", "Bhagalpur"],
-            "Punjab": ["Amritsar", "Patiala", "Ludhiana", "Jalandhar"],
-            "Uttar Pradesh": ["Ayodhya", "Varanasi", "Agra", "Mathura", "Lucknow"]
-        };
+    <!-- Heritage / Artisan Add Form -->
+    <h3 style="margin-top: 26px; font-size: 17px;">नया हेरिटेज या शिल्पकार रिकॉर्ड सत्यापित करें</h3>
+    <form id="addRecordForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>श्रेणी (Category)</label>
+          <select id="recCat" required>
+            <option value="major">प्रमुख धरोहर (Major Heritage)</option>
+            <option value="monument">स्मारक (Monument)</option>
+            <option value="gem">छिपे रत्न (Undiscovered Gem)</option>
+            <option value="artisan">स्थानीय शिल्पकार (Local Artisan)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ज़िला (District)</label>
+          <select id="recDistrict" required>
+            <option value="muzaffarpur">मुजफ्फरपुर (तिरहुत)</option>
+            <option value="patna">पटना (पाटलिपुत्र)</option>
+            <option value="varanasi">वाराणसी (काशी)</option>
+            <option value="amritsar">अमृतसर (पंजाब)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>धरोहर / शिल्पी का नाम</label>
+          <input type="text" id="recTitle" placeholder="उदा. सिकंदरपुर नौकायन केंद्र" required />
+        </div>
+        <div class="form-group">
+          <label>अक्षांश, देशांतर (Lat, Lng)</label>
+          <input type="text" id="recCoords" placeholder="उदा. 26.1209, 85.3647" required />
+        </div>
+        <div class="form-group">
+          <label>व्हाट्सएप नंबर (कारीगर हेतु)</label>
+          <input type="tel" id="recPhone" placeholder="919876543210" />
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>विवरण (भाषिणी AI ऑडियो स्क्रिप्ट)</label>
+          <textarea id="recDesc" rows="3" placeholder="धरोहर का ऐतिहासिक संदर्भ लिखें जिसे AI ऑडियो गाइड में सुनाया जाएगा..." required></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn-submit">सत्यापित करें एवं लाइव प्रकाशित करें (Verify & Publish)</button>
+    </form>
 
-        function updateDistrictOptions() {
-            const st = document.getElementById("placeState").value;
-            const dist = document.getElementById("placeDistrict");
-            dist.innerHTML = "";
-            adminDistricts[st].forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = d;
-                opt.innerText = d;
-                dist.appendChild(opt);
-            });
-        }
-    </script>
+    <!-- Verified Live Table -->
+    <h3 style="margin-top: 36px; font-size: 17px;">सत्यापित लाइव डायरेक्ट्री (data.js + LocalStorage)</h3>
+    <table class="records-table">
+      <thead>
+        <tr>
+          <th>नाम</th>
+          <th>ज़िला</th>
+          <th>श्रेणी</th>
+          <th>स्रोत / स्थिति</th>
+          <th>कार्रवाई</th>
+        </tr>
+      </thead>
+      <tbody id="recordsTbody"></tbody>
+    </table>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>

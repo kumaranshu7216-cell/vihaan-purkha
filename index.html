@@ -1,203 +1,119 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- इमेज ब्लॉकिंग (403 Forbidden) को रोकने के लिए no-referrer पॉलिसी -->
-    <meta name="referrer" content="no-referrer">
-    <title>विहान पुरखा - Vihaan Purkha</title>
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Pannellum 360° Viewer -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-
-    <!-- Leaflet.js Interactive Map Engine -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e1b4b" />
+  <title>VratyaVani AI | The Purkha Heritage Engine (SIH26197)</title>
+  
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    <!-- स्प्लैश स्क्रीन -->
-    <div id="splashScreen" class="splash-overlay">
-        <div class="splash-content">
-            <div class="splash-logo">वि</div>
-            <h1 class="typewriter-text" id="typewriter"></h1>
-            <p class="splash-sub">आपन इतिहास, नई आवाज़</p>
-            <div class="bhashini-tag">🇮🇳 Powered by Digital India Bhashini</div>
-            <div class="splash-loader"></div>
-        </div>
+  <!-- Header -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <span class="brand-badge">SIH26197</span>
+      <div class="brand-text">
+        <h1>VratyaVani <span>AI</span></h1>
+        <p>The Purkha Heritage Engine</p>
+      </div>
     </div>
 
-    <!-- लोकेशन सेलेक्शन पॉपअप -->
-    <div id="locationModal" class="location-modal-overlay">
-        <div class="location-modal-card">
-            <div class="loc-badge">🗺️</div>
-            <h3>धरोहर अन्वेषण</h3>
-            <p class="loc-subtitle">अपनी स्थानीय संस्कृति से जुड़ने के लिए राज्य और ज़िला चुनें</p>
-            
-            <div class="form-group">
-                <label>राज्य (State)</label>
-                <select id="stateSelect" onchange="onStateChange()">
-                    <option value="">-- राज्य चुनें --</option>
-                    <option value="Bihar">बिहार (Bihar)</option>
-                    <option value="Punjab">पंजाब (Punjab)</option>
-                    <option value="Uttar Pradesh">उत्तर प्रदेश (Uttar Pradesh)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>ज़िला (District)</label>
-                <select id="districtSelect" disabled>
-                    <option value="">-- पहले राज्य चुनें --</option>
-                </select>
-            </div>
-
-            <button class="loc-confirm-btn" onclick="confirmLocation()">धरोहर एक्सप्लोर करें ➔</button>
-        </div>
+    <div class="nav-controls">
+      <span id="networkStatusBadge" class="network-badge online">● Online</span>
+      <select id="districtSelect" onchange="onDistrictChange(this.value)">
+        <option value="muzaffarpur" selected>मुजफ्फरपुर (तिरहुत)</option>
+        <option value="patna">पटना (पाटलिपुत्र/मगध)</option>
+        <option value="varanasi">वाराणसी (काशी - UP)</option>
+        <option value="amritsar">अमृतसर (पंजाब)</option>
+      </select>
+      <a href="admin.html" class="admin-link">Admin Desk</a>
     </div>
+  </header>
 
-    <!-- मुख्य ऐप लेआउट -->
-    <div class="app-container" id="mainAppContainer">
-        <!-- टॉप हेडर -->
-        <header class="header">
-            <div class="header-top">
-                <div class="brand-row">
-                    <div class="app-avatar">वि</div>
-                    <div class="brand-text">
-                        <h2>विहान पुरखा</h2>
-                        <p>आपन इतिहास, नई आवाज़</p>
-                    </div>
-                </div>
-
-                <!-- एक्टिव लोकेशन चिप -->
-                <div class="current-location-chip" onclick="openLocationPicker()">
-                    <span id="activeLocLabel">📍 मुजफ्फरपुर, Bihar</span>
-                    <span class="edit-loc-icon">बदलें ✍️</span>
-                </div>
-            </div>
-
-            <!-- सर्च बार और भाषा चयन -->
-            <div class="header-controls">
-                <div class="search-wrapper">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" class="search-bar" placeholder="धरोहर, स्थान या कस्बा खोजें...">
-                </div>
-                <select id="guideLanguage" class="lang-select">
-                    <option value="hi">🇮🇳 हिंदी</option>
-                    <option value="bho">🌾 भोजपुरी</option>
-                    <option value="mai">🪷 मैथिली</option>
-                    <option value="pa">👳 पंजाबी</option>
-                    <option value="en">🌐 English</option>
-                </select>
-            </div>
-            
-            <div class="bhashini-chip">
-                <span>⚡ भाषिणी बहुभाषी AI सक्रिय</span>
-            </div>
-        </header>
-
-        <!-- सेक्शन: होम -->
-        <div id="homeSection">
-            <div class="categories">
-                <button class="cat-btn active">सभी</button>
-                <button class="cat-btn">धार्मिक स्थल</button>
-                <button class="cat-btn">ऐतिहासिक स्थल</button>
-                <button class="cat-btn">लोकल इकॉनमी</button>
-                <button class="cat-btn">हैंडीक्राफ्ट</button>
-            </div>
-
-            <div class="card-list" id="dynamicCardList"></div>
-        </div>
-
-        <!-- सेक्शन: मैप -->
-        <div id="mapSection" style="display: none; padding: 16px;">
-            <div class="map-info-box">
-                <h3 id="mapTargetTitle">📍 हेरिटेज मैप</h3>
-                <p id="mapTargetSub">स्थान पर टैप करके लाइव डायरेक्शन देखें</p>
-            </div>
-            
-            <div id="liveMapBox"></div>
-
-            <div style="text-align: center; margin-top: 14px;">
-                <a id="externalNavBtn" href="#" target="_blank" class="nav-direction-link">🚗 Google Maps पर लाइव रास्ता देखें</a>
-            </div>
-        </div>
-
-        <!-- सेक्शन: बैजेज -->
-        <div id="badgesSection" style="display: none; padding: 20px;">
-            <h3 style="color: #d35400; margin-bottom: 16px; text-align:center; font-weight:800;">आपके डिजिटल बैजेज (XP)</h3>
-            <div class="badge-card xp-gold">
-                <strong>🥇 हेरिटेज एक्सप्लोरर</strong>
-                <p>50 XP प्राप्त किया (स्थान दर्शन पूर्ण)</p>
-            </div>
-            <div class="badge-card xp-green">
-                <strong>🎨 लोकल क्राफ्ट सपोर्टर</strong>
-                <p>100 XP प्राप्त किया (स्थानीय कला व संस्कृति समर्थन)</p>
-            </div>
-        </div>
-
-        <!-- 360° पैनोरमा पॉपअप -->
-        <div id="panoModal" class="pano-modal">
-            <div class="pano-modal-content">
-                <div class="pano-header">
-                    <span id="panoTitle">360° दर्शन</span>
-                    <button class="close-pano" onclick="close360View()">✕</button>
-                </div>
-                <div id="panorama-container"></div>
-                <p class="pano-hint">👆 स्क्रीन को चारों तरफ घुमाकर 360° में देखें</p>
-            </div>
-        </div>
-
-        <!-- AI ऑडियो स्टेटस -->
-        <div id="audioStatus">🔊 भाषिणी AI गाइड बोल रहा है...</div>
-
-        <!-- बॉटम नेविगेशन -->
-        <nav class="bottom-nav">
-            <button class="nav-item active-nav" id="navHome">
-                <span class="nav-icon">🏛️</span>
-                <span>होम</span>
-            </button>
-            <button class="nav-item" id="navMap">
-                <span class="nav-icon">🗺️</span>
-                <span>मैप</span>
-            </button>
-            <button class="nav-item" id="navBadges">
-                <span class="nav-icon">🏆</span>
-                <span>बैजेज</span>
-            </button>
-        </nav>
+  <!-- Hero -->
+  <section class="hero-banner">
+    <h2>पुरखों की थाती, डिजिटल वाणी की पाती</h2>
+    <p>वैदिक जड़ों से आधुनिक AI तक • Dual-Mode Offline Heritage Radar & Voice Guide</p>
+    <div class="hero-badges">
+      <span>🏛️ 4-Tier District Hub</span>
+      <span>🎙️ Bhashini Audio Guide</span>
+      <span>📡 Offline Cache Engine</span>
+      <span>🛍️ Vocal for Local Artisans</span>
     </div>
+  </section>
 
-    <script>
-        const welcomeText = "विहान पुरखा";
-        let charIndex = 0;
-        const typewriterEl = document.getElementById("typewriter");
+  <!-- Main Container -->
+  <main class="main-layout">
+    
+    <!-- Left Column -->
+    <section>
+      <div class="category-tabs">
+        <button class="tab-btn active" onclick="filterCategory('major')">प्रमुख धरोहर (Major)</button>
+        <button class="tab-btn" onclick="filterCategory('monument')">स्मारक (Monuments)</button>
+        <button class="tab-btn" onclick="filterCategory('gem')">छिपे रत्न (Undiscovered)</button>
+        <button class="tab-btn" onclick="filterCategory('artisan')">स्थानीय शिल्पी (Artisans)</button>
+      </div>
+      <div id="cardsGrid" class="cards-grid"></div>
+    </section>
 
-        function playTypewriter() {
-            if (charIndex < welcomeText.length) {
-                typewriterEl.textContent += welcomeText.charAt(charIndex);
-                charIndex++;
-                setTimeout(playTypewriter, 110);
-            }
-        }
+    <!-- Right Column: Leaflet Map & Audio Console -->
+    <aside class="map-sidebar">
+      <div class="map-header">
+        <h3>📍 लाइव हेरिटेज रडार</h3>
+        <span id="currentDistrictBadge">मुजफ्फरपुर</span>
+      </div>
+      <div id="map"></div>
 
-        window.addEventListener("DOMContentLoaded", () => {
-            playTypewriter();
-            setTimeout(() => {
-                const splash = document.getElementById("splashScreen");
-                if (splash) {
-                    splash.classList.add("splash-fade-out");
-                    setTimeout(() => splash.style.display = "none", 500);
-                }
-            }, 1800);
-        });
-    </script>
+      <div class="voice-console">
+        <div class="console-title">
+          <span>🎙️ भाषिणी AI ऑडियो गाइड</span>
+          <select id="langSelect">
+            <option value="hi-IN">हिंदी (Hindi)</option>
+            <option value="bho-IN">भोजपुरी (Bhojpuri)</option>
+            <option value="mai-IN">मैथिली (Maithili)</option>
+            <option value="pa-IN">ਪੰਜਾਬੀ (Punjabi)</option>
+            <option value="en-IN">English</option>
+          </select>
+        </div>
+        <div class="audio-now-playing" id="nowPlayingText">
+          धरोहर चुनें और अपनी बोली में इतिहास सुनें...
+        </div>
+        <div class="audio-controls">
+          <button id="playAudioBtn" onclick="togglePlayVoice()" disabled>▶ चलाएं (Play)</button>
+          <button id="qrGuideBtn" onclick="showQrModal()">📲 ऑन-स्पॉट QR कोड</button>
+        </div>
+      </div>
+    </aside>
 
-    <script src="app.js"></script>
+  </main>
+
+  <!-- QR Modal -->
+  <div id="qrModal" class="modal-backdrop" onclick="closeQrModal(event)">
+    <div class="modal-box">
+      <span class="close-modal" onclick="closeQrModal()">&times;</span>
+      <h3 id="modalHeritageTitle">On-Spot VratyaVani QR</h3>
+      <div style="margin: 15px 0;">
+        <img id="qrImage" src="" alt="VratyaVani QR" style="width: 180px; height: 180px; border-radius: 8px;" />
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        स्थल पर पहुँचकर स्कैन करें और बिना इंटरनेट के भी तुरंत ऑडियो गाइड शुरू करें।
+      </p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p><strong>VratyaVani AI (व्रात्यवाणी)</strong> — The Purkha Heritage Engine (SIH26197)</p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
